@@ -1,0 +1,5 @@
+# Trading System Log File
+# This file contains trading system logs and alerts
+# Format: timestamp - logger - level - message
+
+# System started
