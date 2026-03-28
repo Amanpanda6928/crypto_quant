@@ -1,0 +1,6 @@
+body { background:#0b0e11; color:#fff; }
+
+.live { color:#00ff99; }
+.signal { padding:4px; border:1px solid #00ff99; }
+.bar { width:100px; height:6px; background:#222; }
+.bar div { background:#00ff99; height:100%; }

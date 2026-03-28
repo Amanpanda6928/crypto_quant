@@ -1,0 +1,21 @@
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-20px); }
+  to { transform: translateY(0); }
+}
+
+.coin-card {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.header {
+  animation: slideIn 0.5s ease-out;
+}
+
+.ticker {
+  animation: fadeIn 0.5s ease-in;
+}

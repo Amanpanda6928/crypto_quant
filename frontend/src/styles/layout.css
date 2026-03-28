@@ -1,0 +1,44 @@
+.main-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.coin-card {
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 15px;
+  background: #1a1a1a;
+}
+
+.coin-card h3 {
+  margin: 0 0 10px 0;
+  color: #00ff99;
+}
+
+.login {
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 20px;
+  border: 1px solid #333;
+  border-radius: 8px;
+}
+
+.login input {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #fff;
+}
+
+.login button {
+  width: 100%;
+  padding: 10px;
+  background: #00ff99;
+  border: none;
+  color: #000;
+  cursor: pointer;
+}

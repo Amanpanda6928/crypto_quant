@@ -22,7 +22,7 @@ def main():
         print("   Consider activating your virtual environment first")
 
     # Run the main script with all arguments passed through
-    cmd = [sys.executable, "crypto_quant/main.py"] + sys.argv[1:]
+    cmd = [sys.executable, "backend/main.py"] + sys.argv[1:]
 
     print(f"🚀 Running: {' '.join(cmd)}")
     print(f"📁 Working directory: {script_dir}")
