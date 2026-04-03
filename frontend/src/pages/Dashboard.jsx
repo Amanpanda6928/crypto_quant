@@ -73,7 +73,7 @@ export default function Dashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 16, marginBottom: 34 }}>
         {loading
           ? Array(4).fill(0).map((_, i) => <div key={i} className="skeleton" style={{ height: 140, borderRadius: 18 }} />)
-          : topSignals.map(s => <SignalCard key={s.id} signal={s} compact showDetails={false} />)
+          : topSignals.map(s => <SignalCard key={s.id} signal={s} compact showDetails={false} timeframe="1h" />)
         }
       </div>
 
@@ -92,7 +92,7 @@ export default function Dashboard() {
         </div>
         <div style={{ background: 'linear-gradient(145deg,rgba(30,41,59,0.8),rgba(15,23,42,0.9))', border: '1px solid rgba(71,85,105,0.35)', borderRadius: 18, padding: 26 }}>
           <h3 style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 14, margin: '0 0 20px', fontFamily: "'Space Mono',monospace" }}>Live Metrics</h3>
-          {[['Avg Confidence', `${Math.round(allSignals.reduce((a,s)=>a+s.confidence,0)/(allSignals.length||1))}%`],['Avg Probability',`${Math.round(allSignals.reduce((a,s)=>a+s.probability,0)/(allSignals.length||1))}%`],['BTC Dominance','52.4%'],['Fear & Greed',`${market.fearGreed} / 100`],['Coins Monitored',`${allSignals.length} / 30`],['Data Refresh','Every 5 min']].map(([l,v]) => (
+          {[['Avg Confidence', `${Math.round(allSignals.reduce((a,s)=>a+s.confidence,0)/(allSignals.length||1))}%`],['Avg Probability',`${Math.round(allSignals.reduce((a,s)=>a+s.probability,0)/(allSignals.length||1))}%`],['BTC Dominance','52.4%'],['Fear & Greed',`${market.fearGreed} / 100`],['Coins Monitored',`${allSignals.length} / 17`],['Data Refresh','Every 15 min']].map(([l,v]) => (
             <div key={l} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid rgba(71,85,105,0.18)' }}>
               <span style={{ color: '#64748b', fontSize: 13 }}>{l}</span>
               <span style={{ color: '#f1f5f9', fontSize: 13, fontWeight: 700, fontFamily: "'Space Mono',monospace" }}>{v}</span>

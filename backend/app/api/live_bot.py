@@ -1,6 +1,9 @@
 # Live Trading Bot API Routes
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from app.services.live_bot import run_live_bot, stop_bot, get_bot_status, emergency_close_all
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from services.live_bot import run_live_bot, stop_bot, get_bot_status, emergency_close_all
 import os
 
 router = APIRouter(prefix="/api/live-bot", tags=["live-bot"])
@@ -68,7 +71,7 @@ async def emergency_close_all_positions():
 async def get_bot_config():
     """Get bot configuration"""
     try:
-        from app.multi_coin_lstm import multi_lstm
+        from multi_coin_lstm import multi_lstm
         
         return {
             "coins_tracked": multi_lstm.coins,
@@ -86,8 +89,8 @@ async def get_bot_config():
 async def get_current_signals():
     """Get current trading signals for all 30 coins"""
     try:
-        from app.multi_coin_lstm import multi_lstm
-        from app.services.binance_live import get_all_prices
+        from multi_coin_lstm import multi_lstm
+        from services.binance_live import get_all_prices
         
         # Get current prices
         prices = get_all_prices()
@@ -132,7 +135,7 @@ async def get_bot_performance():
     """Get bot performance metrics"""
     try:
         status = get_bot_status()
-        from app.multi_coin_lstm import multi_lstm
+        from multi_coin_lstm import multi_lstm
         
         # Mock performance data (in real app, calculate from database)
         performance = {

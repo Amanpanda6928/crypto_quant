@@ -3,7 +3,7 @@ import api from "../api/api";
 import { ALL_COINS } from "../services/api";
 import { Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 
-// All 20 coins for backtest (live from Binance)
+// All 17 coins for backtest (live from Binance)
 const BACKTEST_COINS = [
   'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT', 
   'ADAUSDT', 'AVAXUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT',

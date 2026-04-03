@@ -33,14 +33,24 @@ security = HTTPBearer(auto_error=False)
 
 # ── In-memory store (replace with DB in production) ──────────────────────────
 USERS_DB = {
-    "admin@nexus.ai": {
-        "id": 1, "name": "Arjun Sharma", "email": "admin@nexus.ai",
-        "password_hash": hashlib.sha256("password123".encode()).hexdigest(),
+    "amandeep@nexus.ai": {
+        "id": 1, "name": "Amandeep", "email": "amandeep@nexus.ai",
+        "password_hash": hashlib.sha256("admin123".encode()).hexdigest(),
         "role": "admin", "plan": "ELITE",
     },
-    "user@nexus.ai": {
-        "id": 2, "name": "Priya Menon", "email": "user@nexus.ai",
-        "password_hash": hashlib.sha256("password123".encode()).hexdigest(),
+    "karan@nexus.ai": {
+        "id": 2, "name": "Karan Sahoo", "email": "karan@nexus.ai",
+        "password_hash": hashlib.sha256("user123".encode()).hexdigest(),
+        "role": "user", "plan": "PRO",
+    },
+    "biswajit@nexus.ai": {
+        "id": 3, "name": "Biswajit Das", "email": "biswajit@nexus.ai",
+        "password_hash": hashlib.sha256("user123".encode()).hexdigest(),
+        "role": "user", "plan": "PRO",
+    },
+    "gudu@nexus.ai": {
+        "id": 4, "name": "Gudu Pradhan", "email": "gudu@nexus.ai",
+        "password_hash": hashlib.sha256("user123".encode()).hexdigest(),
         "role": "user", "plan": "PRO",
     },
 }
@@ -685,6 +695,171 @@ async def get_all_predictions(user=Depends(get_current_user)):
         "count": len(predictions),
         "timestamp": datetime.utcnow().isoformat()
     }
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# 24/7 AUTOMATION API
+# ════════════════════════════════════════════════════════════════════════════════
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database and start the 24/7 automation service"""
+    try:
+        # Initialize database tables
+        from db.database import init_db
+        init_db()
+        print("✅ Database tables initialized")
+    except Exception as e:
+        print(f"⚠️ Database init warning: {e}")
+    
+    try:
+        from services.market_automation import start_automation
+        # Start with the 17 coins that have loaded models
+        coins = [
+            "BTC", "ETH", "BNB", "SOL", "XRP",
+            "ADA", "AVAX", "DOGE", "DOT", "LINK",
+            "MATIC", "LTC", "BCH", "UNI", "ATOM",
+            "XLM", "ICP"
+        ]
+        start_automation(coins)
+        print("✅ 24/7 Market Data Automation started")
+    except Exception as e:
+        print(f"⚠️ Failed to start automation: {e}")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Stop the automation service when the app shuts down"""
+    try:
+        from services.market_automation import stop_automation
+        stop_automation()
+        print("⏹️ Automation stopped")
+    except Exception as e:
+        print(f"⚠️ Error stopping automation: {e}")
+
+@app.get("/api/automation/status")
+async def get_automation_status(user=Depends(get_current_user)):
+    """Get 24/7 automation status and latest data"""
+    try:
+        from services.market_automation import get_automation_status as get_status
+        status = get_status()
+        if status:
+            return {
+                "running": True,
+                "coins_tracked": status["coins_tracked"],
+                "last_fetch": status["last_fetch"].isoformat() if status["last_fetch"] else None,
+                "last_prediction": status["last_prediction"].isoformat() if status["last_prediction"] else None,
+                "predictions_count": len(status["predictions"]),
+                "signals_count": len(status["signals"]),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        return {"running": False, "message": "Automation not running"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/automation/live-data")
+async def get_live_automation_data(user=Depends(get_current_user)):
+    """Get live market data, predictions, and signals from automation"""
+    try:
+        from services.market_automation import get_automation_status as get_status
+        status = get_status()
+        if status:
+            return {
+                "price_data": status["price_data"],
+                "predictions": status["predictions"],
+                "signals": status["signals"],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        raise HTTPException(status_code=503, detail="Automation not running")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/automation/signals")
+async def get_automation_signals(user=Depends(get_current_user)):
+    """Get latest high-confidence trading signals"""
+    try:
+        from services.market_automation import get_automation_status as get_status
+        status = get_status()
+        if status and status["signals"]:
+            return {
+                "signals": status["signals"],
+                "count": len(status["signals"]),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        return {"signals": [], "count": 0, "message": "No signals available"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# DATABASE API - Live Data Storage
+# ════════════════════════════════════════════════════════════════════════════════
+
+@app.get("/api/market-data/latest")
+async def get_latest_market_data(coin: str = None, limit: int = 100, user=Depends(get_current_user)):
+    """Get latest market data from database"""
+    try:
+        from db.database import SessionLocal
+        from db.models import MarketData
+        
+        db = SessionLocal()
+        try:
+            query = db.query(MarketData)
+            if coin:
+                query = query.filter(MarketData.coin == coin.upper())
+            data = query.order_by(MarketData.timestamp.desc()).limit(limit).all()
+            
+            return {
+                "data": [
+                    {
+                        "coin": d.coin,
+                        "timestamp": d.timestamp.isoformat(),
+                        "price": d.price,
+                        "volume": d.volume,
+                        "change_24h": d.change_24h
+                    }
+                    for d in data
+                ],
+                "count": len(data)
+            }
+        finally:
+            db.close()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/predictions/history")
+async def get_predictions_history(coin: str = None, limit: int = 50, user=Depends(get_current_user)):
+    """Get prediction history from database"""
+    try:
+        from db.database import SessionLocal
+        from db.models import Prediction
+        
+        db = SessionLocal()
+        try:
+            query = db.query(Prediction)
+            if coin:
+                query = query.filter(Prediction.coin == coin.upper())
+            data = query.order_by(Prediction.timestamp.desc()).limit(limit).all()
+            
+            return {
+                "predictions": [
+                    {
+                        "coin": p.coin,
+                        "timestamp": p.timestamp.isoformat(),
+                        "current_price": p.current_price,
+                        "predicted_direction": p.predicted_direction,
+                        "confidence": p.confidence,
+                        "target_price": p.target_price,
+                        "timeframe": p.timeframe
+                    }
+                    for p in data
+                ],
+                "count": len(data)
+            }
+        finally:
+            db.close()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     import uvicorn

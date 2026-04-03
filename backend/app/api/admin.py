@@ -1,6 +1,10 @@
 # =========================
 # api/admin.py
 # =========================
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
+
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional
 from app.core.security import verify_token

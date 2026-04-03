@@ -3,6 +3,10 @@ Crypto Quant Trading System - FastAPI Backend
 Features: JWT Auth, AI Predictions, Live Trading, Backtesting
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(__file__))
+
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

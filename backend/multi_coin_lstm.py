@@ -1,5 +1,5 @@
 # ==================================================
-# 🚀 MULTI-COIN LSTM SYSTEM (30 COINS)
+# 🚀 MULTI-COIN LSTM SYSTEM (17 COINS)
 # ==================================================
 
 import numpy as np
@@ -22,12 +22,12 @@ class MultiCoinLSTM:
         if not os.path.exists(self.model_dir):
             os.makedirs(self.model_dir)
         
-        # 20 major cryptocurrencies - matching frontend
+        # 17 major cryptocurrencies with loaded models - matching config/settings.py
         self.coins = [
             "BTC", "ETH", "BNB", "SOL", "XRP",
             "ADA", "AVAX", "DOGE", "DOT", "LINK",
             "MATIC", "LTC", "BCH", "UNI", "ATOM",
-            "XLM", "ICP", "APT", "ARB", "OP"
+            "XLM", "ICP"
         ]
         
         self.load_all_models()

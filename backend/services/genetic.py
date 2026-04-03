@@ -2,7 +2,10 @@
 import numpy as np
 import random
 from typing import List, Dict, Tuple
-from app.services.portfolio_engine import run_portfolio, calculate_portfolio_metrics
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from portfolio_engine import run_portfolio, calculate_portfolio_metrics
 
 class GeneticOptimizer:
     """Genetic Algorithm for Portfolio Strategy Optimization"""

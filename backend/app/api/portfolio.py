@@ -6,8 +6,8 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from app.services.backtest_engine import fetch_klines
-from app.services.portfolio_engine import (
+from services.backtest_engine import fetch_klines
+from services.portfolio_engine import (
     run_portfolio, optimize_weights, monte_carlo_optimization, 
     generate_portfolio_report, calculate_portfolio_metrics
 )

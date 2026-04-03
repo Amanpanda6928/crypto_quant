@@ -1,6 +1,10 @@
 # =========================
 # services/trading_bot.py
 # =========================
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
+
 import time
 import asyncio
 from typing import Dict, List

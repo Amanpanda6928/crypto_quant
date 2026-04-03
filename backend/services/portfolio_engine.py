@@ -1,6 +1,9 @@
 # Portfolio Optimization Engine
 import numpy as np
-from app.services.strategies import get_strategy_signals, calculate_strategy_performance
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from services.strategies import get_strategy_signals, calculate_strategy_performance
 
 def run_portfolio(prices, weights=None, strategies=None):
     """Run portfolio backtest with multiple strategies"""

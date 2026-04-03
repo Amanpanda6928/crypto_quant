@@ -1,4 +1,8 @@
 from fastapi import APIRouter
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
 from db.database import SessionLocal
 from db.models import User
 from auth.utils import hash_password, verify, create_token

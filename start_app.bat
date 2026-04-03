@@ -5,7 +5,7 @@ echo ========================================
 echo    Crypto Quant Trading System
 echo ========================================
 echo.
-echo Backend: http://127.0.0.1:8000
+echo Backend: http://127.0.0.1:8001
 echo Frontend: http://localhost:3000
 echo API Docs: http://127.0.0.1:8000/docs
 echo.
@@ -27,7 +27,7 @@ echo ✅ Node.js found
 echo.
 
 REM Start backend in new window
-start "Backend Server" cmd /k "cd /d %~dp0backend && python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload"
+start "Backend Server" cmd /k "cd /d %~dp0backend && python -m uvicorn main:app --host 127.0.0.1 --port 8001 --reload"
 
 REM Wait a moment then start frontend
 timeout /t 3 /nobreak >nul

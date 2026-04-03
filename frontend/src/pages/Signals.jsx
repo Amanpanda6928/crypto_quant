@@ -183,7 +183,7 @@ export default function Signals() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {filtered.map((s, i) => (
                 <div key={s.id} style={{ animation: `fadeUp 0.35s ease ${i * 0.04}s both` }}>
-                  <SignalCard signal={s} />
+                  <SignalCard signal={s} timeframe={timeframe} />
                 </div>
               ))}
             </div>

@@ -1,10 +1,14 @@
 # AI + Strategy Fusion Engine
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
 import numpy as np
 import pandas as pd
 from typing import List, Dict, Tuple
-from app.services.strategies import get_strategy_signals
-from app.multi_coin_lstm import multi_lstm
-from app.services.portfolio_engine import calculate_portfolio_metrics
+from strategies import get_strategy_signals
+from multi_coin_lstm import multi_lstm
+from portfolio_engine import calculate_portfolio_metrics
 
 class AIStrategyFusion:
     """Combine AI predictions with traditional strategies"""

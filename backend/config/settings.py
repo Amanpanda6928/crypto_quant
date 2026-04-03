@@ -33,16 +33,18 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
 # ==============================
 # TRADING CONFIG
 # ==============================
+# 17 major cryptocurrencies with loaded models
 COINS = [
     "BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT",
     "ADAUSDT", "AVAXUSDT", "DOGEUSDT", "DOTUSDT", "LINKUSDT",
     "MATICUSDT", "LTCUSDT", "BCHUSDT", "UNIUSDT", "ATOMUSDT",
-    "XLMUSDT", "ICPUSDT", "APTUSDT", "ARBUSDT", "OPUSDT",
-    "PEPEUSDT", "SHIBUSDT", "RNDRUSDT", "INJUSDT", "SUIUSDT",
-    "SEIUSDT", "KASUSDT", "FTMUSDT", "GRTUSDT", "RUNEUSDT"
+    "XLMUSDT", "ICPUSDT"
 ]
 
 TIMEFRAMES = ["1m", "5m", "15m", "1h"]
+
+# Model configuration
+MODEL_SEQUENCE_LENGTH = 60
 
 # ==============================
 # MODEL PATHS

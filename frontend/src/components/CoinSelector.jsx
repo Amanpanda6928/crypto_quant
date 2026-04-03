@@ -1,15 +1,23 @@
 export default function CoinSelector({ setSymbol, currentSymbol }) {
   const coins = [
+    { symbol: "ALL", name: "All", icon: "" },
     { symbol: "BTCUSDT", name: "Bitcoin", icon: "₿" },
     { symbol: "ETHUSDT", name: "Ethereum", icon: "Ξ" },
     { symbol: "BNBUSDT", name: "Binance Coin", icon: "🅱️" },
-    { symbol: "ADAUSDT", name: "Cardano", icon: "₳" },
     { symbol: "SOLUSDT", name: "Solana", icon: "◎" },
+    { symbol: "XRPUSDT", name: "Ripple", icon: "✕" },
+    { symbol: "ADAUSDT", name: "Cardano", icon: "₳" },
+    { symbol: "AVAXUSDT", name: "Avalanche", icon: "🔺" },
     { symbol: "DOGEUSDT", name: "Dogecoin", icon: "🐕" },
     { symbol: "DOTUSDT", name: "Polkadot", icon: "●" },
+    { symbol: "LINKUSDT", name: "Chainlink", icon: "🔗" },
     { symbol: "MATICUSDT", name: "Polygon", icon: "⬟" },
-    { symbol: "AVAXUSDT", name: "Avalanche", icon: "🔺" },
-    { symbol: "LINKUSDT", name: "Chainlink", icon: "🔗" }
+    { symbol: "LTCUSDT", name: "Litecoin", icon: "Ł" },
+    { symbol: "BCHUSDT", name: "Bitcoin Cash", icon: "₿" },
+    { symbol: "UNIUSDT", name: "Uniswap", icon: "🦄" },
+    { symbol: "ATOMUSDT", name: "Cosmos", icon: "⚛" },
+    { symbol: "XLMUSDT", name: "Stellar", icon: "★" },
+    { symbol: "ICPUSDT", name: "Internet Computer", icon: "∞" }
   ];
 
   return (

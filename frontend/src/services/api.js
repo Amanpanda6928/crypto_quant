@@ -49,9 +49,6 @@ export const ALL_COINS = [
   { symbol: 'ATOM', name: 'Cosmos',             color: '#6f75c8' },
   { symbol: 'XLM',  name: 'Stellar',            color: '#7d00ff' },
   { symbol: 'ICP',  name: 'Internet Computer',  color: '#29abe2' },
-  { symbol: 'APT',  name: 'Aptos',              color: '#00b4d8' },
-  { symbol: 'ARB',  name: 'Arbitrum',           color: '#28a0f0' },
-  { symbol: 'OP',   name: 'Optimism',           color: '#ff0420' },
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -623,12 +620,10 @@ export async function fetchAdminUsers() {
   } catch (error) {
     console.warn('fetchAdminUsers fallback to mock:', error.message)
     return [
-      { id: 1, name: 'Arjun Sharma',  email: 'arjun@nexus.ai',   plan: 'ELITE', role: 'admin', joined: '2024-01-15', signals: 230 },
-      { id: 2, name: 'Priya Menon',   email: 'priya@nexus.ai',    plan: 'PRO',   role: 'user',  joined: '2024-03-20', signals: 115 },
-      { id: 3, name: 'Rohan Das',     email: 'rohan@nexus.ai',    plan: 'FREE',  role: 'user',  joined: '2024-04-02', signals: 22  },
-      { id: 4, name: 'Sneha Pillai',  email: 'sneha@nexus.ai',    plan: 'PRO',   role: 'user',  joined: '2024-02-10', signals: 188 },
-      { id: 5, name: 'Vikram Nair',   email: 'vikram@nexus.ai',   plan: 'FREE',  role: 'user',  joined: '2024-05-01', signals: 9   },
-      { id: 6, name: 'Ananya Singh',  email: 'ananya@nexus.ai',   plan: 'ELITE', role: 'user',  joined: '2024-01-28', signals: 312 },
+      { id: 1, name: 'Amandeep',       email: 'amandeep@nexus.ai',  plan: 'ELITE', role: 'admin', joined: '2024-01-15', signals: 230 },
+      { id: 2, name: 'Karan Sahoo',    email: 'karan@nexus.ai',     plan: 'PRO',   role: 'user',  joined: '2024-03-20', signals: 115 },
+      { id: 3, name: 'Biswajit Das',   email: 'biswajit@nexus.ai',  plan: 'PRO',   role: 'user',  joined: '2024-04-02', signals: 22  },
+      { id: 4, name: 'Gudu Pradhan',   email: 'gudu@nexus.ai',      plan: 'PRO',   role: 'user',  joined: '2024-02-10', signals: 88 },
     ]
   }
 }

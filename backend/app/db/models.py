@@ -1,12 +1,17 @@
 # =========================
 # db/models.py
 # =========================
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
+
 from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Text
 from sqlalchemy.sql import func
 from app.db.database import Base
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = {'extend_existing': True}
     
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
@@ -19,6 +24,7 @@ class User(Base):
 
 class Trade(Base):
     __tablename__ = "trades"
+    __table_args__ = {'extend_existing': True}
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, nullable=False)
@@ -36,6 +42,7 @@ class Trade(Base):
 
 class AuditLog(Base):
     __tablename__ = "logs"
+    __table_args__ = {'extend_existing': True}
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, nullable=False)
@@ -47,6 +54,7 @@ class AuditLog(Base):
 
 class Signal(Base):
     __tablename__ = "signals"
+    __table_args__ = {'extend_existing': True}
     
     id = Column(Integer, primary_key=True, index=True)
     symbol = Column(String, nullable=False)
@@ -56,8 +64,38 @@ class Signal(Base):
     strategy = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+
+class MarketData(Base):
+    """Store live market data fetched every 30 seconds"""
+    __tablename__ = "market_data"
+    __table_args__ = {'extend_existing': True}
+    
+    id = Column(Integer, primary_key=True, index=True)
+    coin = Column(String, index=True, nullable=False)
+    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    price = Column(Float, nullable=False)
+    volume = Column(Float, default=0)
+    change_24h = Column(Float, default=0)
+
+
+class Prediction(Base):
+    """Store AI predictions generated every 5 minutes"""
+    __tablename__ = "predictions"
+    __table_args__ = {'extend_existing': True}
+    
+    id = Column(Integer, primary_key=True, index=True)
+    coin = Column(String, index=True, nullable=False)
+    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    current_price = Column(Float, nullable=False)
+    predicted_direction = Column(String, nullable=False)  # BUY, SELL, HOLD
+    confidence = Column(Float, nullable=False)
+    target_price = Column(Float)
+    timeframe = Column(String, default="1h")  # 1h, 4h, 1d
+
+
 class Portfolio(Base):
     __tablename__ = "portfolio"
+    __table_args__ = {'extend_existing': True}
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, nullable=False)

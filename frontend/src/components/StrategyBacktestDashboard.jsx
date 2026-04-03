@@ -31,7 +31,7 @@ const StrategyBacktestDashboard = () => {
     'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT', 
     'ADAUSDT', 'AVAXUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT',
     'MATICUSDT', 'LTCUSDT', 'BCHUSDT', 'UNIUSDT', 'ATOMUSDT',
-    'XLMUSDT', 'ICPUSDT', 'APTUSDT', 'ARBUSDT', 'OPUSDT'
+    'XLMUSDT', 'ICPUSDT'
   ];
 
   const intervals = [
@@ -425,11 +425,11 @@ const StrategyBacktestDashboard = () => {
         </button>
       </div>
 
-      {/* All 20 Coins Results Grid */}
+      {/* All 17 Coins Results Grid */}
       {allCoinsResults && symbol === 'ALL' && (
         <div style={cardStyle}>
           <div style={{ ...labelStyle, fontSize: '14px' }}>
-            📊 Backtest Results for All 20 Coins ({interval}) - Initial: $10,000 per coin
+            📊 Backtest Results for All 17 Coins ({interval}) - Initial: $10,000 per coin
           </div>
           
           <div style={{ 

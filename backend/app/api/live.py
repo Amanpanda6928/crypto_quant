@@ -1,6 +1,10 @@
 # =========================
 # api/live.py
 # =========================
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
+
 import time
 import random
 from fastapi import APIRouter, HTTPException, BackgroundTasks
@@ -21,9 +25,9 @@ try:
     load_ml_models = load_ml_models_func
     # Load ML models on startup
     load_ml_models()
-    print("✅ ML models loaded successfully")
+    print("OK: ML models loaded successfully")
 except Exception as e:
-    print(f"⚠️ ML models not loaded: {e}")
+    print(f"Warning: ML models not loaded: {e}")
     # Define fallback functions
     def ml_predict_fallback(*args, **kwargs):
         return None

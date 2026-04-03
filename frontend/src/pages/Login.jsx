@@ -63,7 +63,7 @@ export default function Login() {
           {mode === 'register' && (
             <div>
               <label style={{ color: '#94a3b8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 7, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Full Name</label>
-              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Arjun Sharma" onFocus={() => setFocused('name')} onBlur={() => setFocused(null)} style={inputStyle('name')} />
+              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Amandeep" onFocus={() => setFocused('name')} onBlur={() => setFocused(null)} style={inputStyle('name')} />
             </div>
           )}
           <div>

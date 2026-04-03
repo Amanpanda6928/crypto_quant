@@ -8,8 +8,8 @@ SECRET_KEY = "supersecret"
 ALGORITHM = "HS256"
 LIVE_TRADING = False
 
-# Database settings
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/cryptodb")
+# Database settings - Using SQLite for development (no server required)
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./trading.db")
 
 # Trading settings
 BINANCE_API_KEY = os.getenv("BINANCE_API_KEY", "")

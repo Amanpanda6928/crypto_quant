@@ -54,18 +54,25 @@ CryptoQuant/
 
 ## Quick Start
 
-### Frontend
+### Option 1: Using the Launcher (Recommended)
+```bash
+python start_app.py
+```
+
+### Option 2: Manual Start
+
+**Backend:**
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+**Frontend:**
 ```bash
 cd frontend
 npm install
 npm run dev
-```
-
-### Backend
-```bash
-cd backend
-pip install -r requirements.txt
-python main.py
 ```
 
 ## Features
@@ -84,9 +91,17 @@ python main.py
 
 ## Login Credentials
 
-- **Email:** admin@nexus.ai
-- **Password:** 123456
-- **Role:** Admin ELITE
+| User | Email | Password | Role | Plan |
+|------|-------|----------|------|------|
+| Amandeep | amandeep@nexus.ai | admin123 | Admin | ELITE |
+| Karan Sahoo | karan@nexus.ai | user123 | User | PRO |
+| Biswajit Das | biswajit@nexus.ai | user123 | User | PRO |
+| Gudu Pradhan | gudu@nexus.ai | user123 | User | PRO |
+
+**URLs:**
+- Frontend: http://localhost:5173/
+- Backend API: http://127.0.0.1:8000
+- API Docs: http://127.0.0.1:8000/docs
 
 ## 30 Supported Coins
 

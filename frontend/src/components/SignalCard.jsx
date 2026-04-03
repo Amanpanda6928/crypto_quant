@@ -13,7 +13,7 @@ function timeAgo(iso) {
   return `${Math.floor(mins / 60)}h ago` 
 }
 
-export default function SignalCard({ signal, compact = false, showDetails = true }) {
+export default function SignalCard({ signal, compact = false, showDetails = true, timeframe = '1h' }) {
   const [hovered, setHovered] = useState(false)
   const cfg = SIGNAL_CONFIG[signal.signal] || SIGNAL_CONFIG.HOLD
 
@@ -87,7 +87,7 @@ export default function SignalCard({ signal, compact = false, showDetails = true
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#a78bfa', animation: 'pulse 1.5s infinite' }} />
             <span style={{ color: '#a78bfa', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              🤖 AI Prediction (1h)
+              🤖 AI Prediction ({timeframe})
             </span>
             <span style={{ color: '#64748b', fontSize: 9, marginLeft: 'auto' }}>
               {signal.prediction.confidence}% confidence

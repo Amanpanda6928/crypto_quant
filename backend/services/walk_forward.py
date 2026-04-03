@@ -1,9 +1,13 @@
 # Walk-Forward Validation Engine
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
 import numpy as np
 import pandas as pd
 from typing import List, Dict, Tuple
-from app.services.strategies import get_strategy_signals, calculate_strategy_performance
-from app.multi_coin_lstm import multi_lstm
+from services.strategies import get_strategy_signals, calculate_strategy_performance
+from multi_coin_lstm import multi_lstm
 
 def walk_forward_validation(prices, window_size=200, step_size=50, strategies=None):
     """

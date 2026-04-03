@@ -1,6 +1,10 @@
 # =========================
 # api/auth.py
 # =========================
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
+
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from app.core.security import hash_password, verify_password, create_token, verify_token
@@ -12,25 +16,46 @@ router = APIRouter()
 
 # In-memory user store for demo (replace with database)
 users_db = {
-    "admin": {
+    "amandeep": {
         "id": 1,
-        "username": "admin",
+        "username": "amandeep",
         "password": hash_password("admin123"),
         "role": "ADMIN",
-        "email": "admin@example.com"
+        "email": "amandeep@nexus.ai",
+        "name": "Amandeep"
     },
-    "user": {
+    "karan": {
         "id": 2,
-        "username": "user",
+        "username": "karan",
         "password": hash_password("user123"),
         "role": "USER",
-        "email": "user@example.com"
+        "email": "karan@nexus.ai",
+        "name": "Karan Sahoo"
+    },
+    "biswajit": {
+        "id": 3,
+        "username": "biswajit",
+        "password": hash_password("user123"),
+        "role": "USER",
+        "email": "biswajit@nexus.ai",
+        "name": "Biswajit Das"
+    },
+    "gudu": {
+        "id": 4,
+        "username": "gudu",
+        "password": hash_password("user123"),
+        "role": "USER",
+        "email": "gudu@nexus.ai",
+        "name": "Gudu Pradhan"
     }
 }
+
+from typing import Optional
 
 class LoginRequest(BaseModel):
     username: str
     password: str
+    email: Optional[str] = None  # Optional for login
 
 class RegisterRequest(BaseModel):
     username: str

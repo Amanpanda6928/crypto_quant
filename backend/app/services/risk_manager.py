@@ -1,6 +1,10 @@
 # =========================
 # services/risk_manager.py
 # =========================
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
+
 from typing import Dict, Optional
 from app.core.config import DEFAULT_RISK_PERCENTAGE, MAX_POSITION_SIZE, MAX_DRAWDOWN
 

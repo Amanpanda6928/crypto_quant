@@ -1,6 +1,10 @@
 # =========================
 # api/bot.py
 # =========================
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
+
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from app.services.trading_bot import trading_bot, run_bot
 import asyncio

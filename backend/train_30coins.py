@@ -96,12 +96,12 @@ class ModelTrainer:
         joblib.dump(model, f"{self.model_dir}/{coin}_model.pkl")
         joblib.dump(scaler, f"{self.model_dir}/{coin}_scaler.pkl")
         
-        print(f"✅ {coin} trained | Train: {train_score:.3f} | Test: {test_score:.3f}")
+        print(f"OK: {coin} trained | Train: {train_score:.3f} | Test: {test_score:.3f}")
         return True
     
     def train_all_coins(self):
         """Train models for all 30 coins"""
-        print("🚀 Training 30 AI models for cryptocurrency trading...")
+        print(">>> Training 30 AI models for cryptocurrency trading...")
         print("=" * 60)
         
         success_count = 0
@@ -119,7 +119,7 @@ class ModelTrainer:
             
             time.sleep(0.5)  # Rate limiting
         
-        print(f"\n🎉 Training complete: {success_count}/30 models trained successfully")
+        print(f"\n*** Training complete: {success_count}/30 models trained successfully")
         return success_count
 
 if __name__ == "__main__":
