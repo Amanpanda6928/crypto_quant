@@ -25,16 +25,16 @@ SOFTWARE.
 Team NEXUS AI Contributors:
 
 - Amandeep (amandeep@nexus.ai) - Lead Developer & Architect
-  Backend API, AI Models, System Design
+  Backend API, ML Engineer, LSTM Models, Predictions, Data Pipeline, System Design
 
-- Karan Sahoo (karan@nexus.ai) - Frontend Developer
+- Karan Sahoo (karan@nexus.ai) - Strategy & Backtesting Developer
+  Strategy Development, Backtesting Engine
+
+- Biswajit Das (biswajit@nexus.ai) - Frontend Developer
   UI/UX, React Components, Dashboard
 
-- Biswajit Das (biswajit@nexus.ai) - ML Engineer
-  LSTM Models, Predictions, Data Pipeline
-
-- Priyabata Pradhan (gudu@nexus.ai) - DevOps & Testing
-  Deployment, Testing, Documentation
+- Priyabata Pradhan (gudu@nexus.ai) - Frontend Developer
+  UI/UX, React Components, Dashboard, Deployment, Testing
 
 ---
 
