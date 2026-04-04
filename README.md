@@ -314,11 +314,21 @@ DATABASE_URL=sqlite:///./crypto_quant.db
 
 ## Screenshots
 
-*Dashboard showing live predictions and portfolio*
+### Login Page
+![Login Page](screenshots/login.png)
+*Secure authentication with JWT*
 
-*Trading chart with AI prediction overlay*
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
+*Real-time market overview with AI predictions and trading signals*
 
-*Multi-timeframe signal analysis*
+### Live Trading
+![Live Trading](screenshots/live-trading.png)
+*Interactive charts with technical indicators and AI signal overlay*
+
+### Signal Feed
+![Signal Feed](screenshots/signals.png)
+*AI-generated BUY/SELL/HOLD signals with confidence scores*
 
 ---
 
