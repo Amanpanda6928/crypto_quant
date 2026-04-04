@@ -4,14 +4,33 @@ from binance.exceptions import BinanceAPIException
 import os
 import time
 
-client = Client(
-    os.getenv("BINANCE_API_KEY"),
-    os.getenv("BINANCE_SECRET")
-)
+# Lazy initialization - client created on first use
+_client = None
+
+def get_client():
+    """Get or create Binance client (lazy initialization)"""
+    global _client
+    if _client is None:
+        try:
+            _client = Client(
+                os.getenv("BINANCE_API_KEY"),
+                os.getenv("BINANCE_SECRET"),
+                {"verify": True, "timeout": 20},
+                testnet=os.getenv("BINANCE_TESTNET", "false").lower() == "true",
+            )
+        except Exception as e:
+            print(f"⚠️  Binance client init failed: {e}")
+            print("   Running in offline/demo mode - no live trading available")
+            _client = None
+    return _client
 
 def get_price(symbol):
     """Get current price for a symbol"""
     try:
+        client = get_client()
+        if client is None:
+            print(f"Offline mode: Cannot get price for {symbol}")
+            return None
         ticker = client.get_symbol_ticker(symbol=symbol)
         return float(ticker["price"])
     except Exception as e:
@@ -21,6 +40,10 @@ def get_price(symbol):
 def market_buy(symbol, qty):
     """Execute market buy order"""
     try:
+        client = get_client()
+        if client is None:
+            print("Offline mode: Cannot execute market buy")
+            return None
         order = client.create_order(
             symbol=symbol,
             side="BUY",
@@ -36,6 +59,10 @@ def market_buy(symbol, qty):
 def market_sell(symbol, qty):
     """Execute market sell order"""
     try:
+        client = get_client()
+        if client is None:
+            print("Offline mode: Cannot execute market sell")
+            return None
         order = client.create_order(
             symbol=symbol,
             side="SELL",
@@ -54,6 +81,10 @@ def place_oco_sell(symbol, qty, take_profit, stop_loss):
     SELL order with TP (limit) and SL (stop-market)
     """
     try:
+        client = get_client()
+        if client is None:
+            print("Offline mode: Cannot place OCO sell")
+            return None
         order = client.create_oco_order(
             symbol=symbol,
             side="SELL",
@@ -75,6 +106,10 @@ def place_oco_buy(symbol, qty, take_profit, stop_loss):
     BUY order with TP (limit) and SL (stop-market)
     """
     try:
+        client = get_client()
+        if client is None:
+            print("Offline mode: Cannot place OCO buy")
+            return None
         order = client.create_oco_order(
             symbol=symbol,
             side="BUY",
@@ -90,10 +125,17 @@ def place_oco_buy(symbol, qty, take_profit, stop_loss):
         print(f"OCO BUY failed: {e}")
         return None
 
-def get_order_status(order_id):
+def get_order_status(order_id, symbol=None):
     """Get order status"""
     try:
-        order = client.get_order(orderId=order_id)
+        client = get_client()
+        if client is None:
+            print("Offline mode: Cannot get order status")
+            return None
+        if symbol:
+            order = client.get_order(symbol=symbol, orderId=order_id)
+        else:
+            order = client.get_order(orderId=order_id)
         return order
     except Exception as e:
         print(f"Error getting order status: {e}")
@@ -102,6 +144,10 @@ def get_order_status(order_id):
 def cancel_order(order_id, symbol=None):
     """Cancel an order"""
     try:
+        client = get_client()
+        if client is None:
+            print("Offline mode: Cannot cancel order")
+            return None
         if symbol:
             result = client.cancel_order(symbol=symbol, orderId=order_id)
         else:
@@ -115,6 +161,10 @@ def cancel_order(order_id, symbol=None):
 def get_account_info():
     """Get account information"""
     try:
+        client = get_client()
+        if client is None:
+            print("Offline mode: Cannot get account info")
+            return None
         account = client.get_account()
         return account
     except Exception as e:
@@ -124,6 +174,10 @@ def get_account_info():
 def get_symbol_info(symbol):
     """Get symbol trading information"""
     try:
+        client = get_client()
+        if client is None:
+            print("Offline mode: Cannot get symbol info")
+            return None
         info = client.get_symbol_info(symbol=symbol)
         return info
     except Exception as e:
@@ -170,6 +224,10 @@ def get_balance(asset="USDT"):
 def get_open_orders(symbol=None):
     """Get all open orders"""
     try:
+        client = get_client()
+        if client is None:
+            print("Offline mode: Cannot get open orders")
+            return []
         if symbol:
             orders = client.get_open_orders(symbol=symbol)
         else:
@@ -182,6 +240,10 @@ def get_open_orders(symbol=None):
 def get_order_history(limit=100):
     """Get order history"""
     try:
+        client = get_client()
+        if client is None:
+            print("Offline mode: Cannot get order history")
+            return []
         orders = client.get_all_orders(limit=limit)
         return orders
     except Exception as e:
@@ -191,6 +253,9 @@ def get_order_history(limit=100):
 def get_server_time():
     """Get Binance server time"""
     try:
+        client = get_client()
+        if client is None:
+            return None
         server_time = client.get_server_time()
         return server_time
     except Exception as e:
@@ -215,6 +280,10 @@ def test_connection():
 def place_trailing_stop(symbol, side, quantity, activation_price, callback_rate):
     """Place trailing stop order"""
     try:
+        client = get_client()
+        if client is None:
+            print("Offline mode: Cannot place trailing stop")
+            return None
         order = client.create_order(
             symbol=symbol,
             side=side,
@@ -232,6 +301,10 @@ def place_trailing_stop(symbol, side, quantity, activation_price, callback_rate)
 def place_take_profit_order(symbol, side, quantity, stop_price, profit_price):
     """Place take profit order"""
     try:
+        client = get_client()
+        if client is None:
+            print("Offline mode: Cannot place take profit order")
+            return None
         order = client.create_order(
             symbol=symbol,
             side=side,

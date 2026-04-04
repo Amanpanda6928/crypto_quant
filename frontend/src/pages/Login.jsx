@@ -93,7 +93,7 @@ export default function Login() {
         <div style={{ marginTop: 24, padding: '12px 14px', background: 'rgba(139,92,246,0.07)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: 12 }}>
           <div style={{ color: '#8b5cf6', fontSize: 10, fontWeight: 700, marginBottom: 4, letterSpacing: '0.1em', textTransform: 'uppercase' }}>FastAPI Backend</div>
           <div style={{ color: '#64748b', fontSize: 11, lineHeight: 1.6 }}>
-            Connects to <span style={{ color: '#a78bfa', fontFamily: "'Space Mono',monospace" }}>{import.meta.env.VITE_API_URL || 'http://localhost:8000'}</span>
+            Connects to <span style={{ color: '#a78bfa', fontFamily: "'Space Mono',monospace" }}>http://localhost:8000</span>
           </div>
         </div>
       </div>

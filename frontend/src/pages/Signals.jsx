@@ -92,7 +92,7 @@ export default function Signals() {
         <div>
           <h1 style={{ color: '#f1f5f9', fontWeight: 800, fontSize: 26, margin: '0 0 4px', fontFamily: "'Space Mono',monospace", letterSpacing: '-0.03em' }}>Signal Feed</h1>
           <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>
-            AI-generated trading signals across 20 cryptocurrencies
+            AI-generated trading signals across 17 cryptocurrencies
             {lastUpdated && <span style={{ color: '#10b981', marginLeft: 8 }}>● Live</span>}
           </p>
           {lastUpdated && (

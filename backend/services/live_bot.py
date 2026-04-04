@@ -4,7 +4,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from services.binance_live import (
-    get_price, market_buy, place_oco_sell, get_balance, 
+    get_price, market_buy, market_sell, place_oco_sell, get_balance, 
     get_open_orders, cancel_order, get_order_status
 )
 from services.risk_control import calc_qty, sl_tp_prices, calculate_risk_metrics

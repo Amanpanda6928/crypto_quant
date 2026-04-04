@@ -73,7 +73,7 @@ export default function Dashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 16, marginBottom: 34 }}>
         {loading
           ? Array(4).fill(0).map((_, i) => <div key={i} className="skeleton" style={{ height: 140, borderRadius: 18 }} />)
-          : topSignals.map(s => <SignalCard key={s.id} signal={s} compact showDetails={false} timeframe="1h" />)
+          : [...topSignals].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map(s => <SignalCard key={s.id} signal={s} compact showDetails={false} timeframe="1h" />)
         }
       </div>
 
