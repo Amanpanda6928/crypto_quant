@@ -19,7 +19,7 @@ NEXUS AI is a comprehensive cryptocurrency trading platform featuring real-time 
 | **Amandeep** | Lead Developer & Architect | amandeep@nexus.ai | Backend API, AI Models, System Design |
 | **Karan Sahoo** | Frontend Developer | karan@nexus.ai | UI/UX, React Components, Dashboard |
 | **Biswajit Das** | ML Engineer | biswajit@nexus.ai | LSTM Models, Predictions, Data Pipeline |
-| **Gudu Pradhan** | DevOps & Testing | gudu@nexus.ai | Deployment, Testing, Documentation |
+| **Priyabata Pradhan** | DevOps & Testing | gudu@nexus.ai | Deployment, Testing, Documentation |
 
 ---
 
@@ -344,7 +344,7 @@ For support, email the team:
 - **Amandeep**: amandeep@nexus.ai
 - **Karan Sahoo**: karan@nexus.ai
 - **Biswajit Das**: biswajit@nexus.ai
-- **Gudu Pradhan**: gudu@nexus.ai
+- **Priyabata Pradhan**: gudu@nexus.ai
 
 ---
 

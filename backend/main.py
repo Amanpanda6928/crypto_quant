@@ -49,7 +49,7 @@ USERS_DB = {
         "role": "user", "plan": "PRO",
     },
     "gudu@nexus.ai": {
-        "id": 4, "name": "Gudu Pradhan", "email": "gudu@nexus.ai",
+        "id": 4, "name": "Priyabata Pradhan", "email": "gudu@nexus.ai",
         "password_hash": hashlib.sha256("user123".encode()).hexdigest(),
         "role": "user", "plan": "PRO",
     },

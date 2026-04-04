@@ -623,7 +623,7 @@ export async function fetchAdminUsers() {
       { id: 1, name: 'Amandeep',       email: 'amandeep@nexus.ai',  plan: 'ELITE', role: 'admin', joined: '2024-01-15', signals: 230 },
       { id: 2, name: 'Karan Sahoo',    email: 'karan@nexus.ai',     plan: 'PRO',   role: 'user',  joined: '2024-03-20', signals: 115 },
       { id: 3, name: 'Biswajit Das',   email: 'biswajit@nexus.ai',  plan: 'PRO',   role: 'user',  joined: '2024-04-02', signals: 22  },
-      { id: 4, name: 'Gudu Pradhan',   email: 'gudu@nexus.ai',      plan: 'PRO',   role: 'user',  joined: '2024-02-10', signals: 88 },
+      { id: 4, name: 'Priyabata Pradhan',   email: 'gudu@nexus.ai',      plan: 'PRO',   role: 'user',  joined: '2024-02-10', signals: 88 },
     ]
   }
 }

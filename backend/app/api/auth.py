@@ -46,7 +46,7 @@ users_db = {
         "password": hash_password("user123"),
         "role": "USER",
         "email": "gudu@nexus.ai",
-        "name": "Gudu Pradhan"
+        "name": "Priyabata Pradhan"
     }
 }
 
