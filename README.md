@@ -330,6 +330,14 @@ DATABASE_URL=sqlite:///./crypto_quant.db
 ![Signal Feed](screenshots/signals.png)
 *AI-generated BUY/SELL/HOLD signals with confidence scores*
 
+### Portfolio
+![Portfolio](screenshots/Portfolio.png)
+*Track your crypto holdings and portfolio performance*
+
+### Analytics
+![Analytics](screenshots/Analysis.png)
+*Advanced trading analytics and equity curve visualization*
+
 ---
 
 ## Contributing
