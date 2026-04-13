@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import MetricCard from '../components/MetricCard'
 import SignalCard from '../components/SignalCard'
-import { fetchSuggestions, fetchMarketStatus, generateMockSignals } from '../services/api'
+import { fetchSuggestions, fetchMarketStatus, forceRefreshPredictions } from '../services/api'
+import { getLivePredictions, getTopSignals } from '../api/livePredictionsApi'
 import { useAuth } from '../context/AuthContext'
+import api from '../services/api'
 
 function Badge({ label, variant }) {
   const map = {
@@ -22,18 +24,66 @@ export default function Dashboard() {
   const [market, setMarket]         = useState({ regime: 'BULL', volatility: 'MEDIUM', fearGreed: 68 })
   const [allSignals, setAllSignals] = useState([])
   const [loading, setLoading]       = useState(true)
+  const [predictionsData, setPredictionsData] = useState({ coins_tracked: 10, total_predictions: 50 })
+
+  const timeframes = [
+    { key: '15m', label: '15m' },
+    { key: '30m', label: '30m' },
+    { key: '1h', label: '1h' },
+    { key: '4h', label: '4h' },
+    { key: '1d', label: '1d' }
+  ]
 
   useEffect(() => {
     async function load() {
       setLoading(true)
-      const [suggestions, status] = await Promise.all([fetchSuggestions(), fetchMarketStatus()])
-      setAllSignals(generateMockSignals())
-      setTopSignals(suggestions)
-      setMarket(status)
+      try {
+        const [livePreds, topSigs, status] = await Promise.all([
+          getLivePredictions(),
+          getTopSignals(60, 10),
+          fetchMarketStatus()
+        ])
+        
+        // Process live predictions
+        const predictionsMap = livePreds.predictions || {}
+        setPredictionsData(livePreds)
+        
+        // Convert to signals format
+        const signals = Object.entries(predictionsMap).map(([coin, data]) => {
+          const tf1h = data.predictions?.['1h'] || data['1h'] || {}
+          return {
+            id: coin,
+            coin: coin,
+            signal: tf1h.signal || 'HOLD',
+            confidence: tf1h.confidence || 60,
+            probability: tf1h.confidence || 60,
+            timestamp: tf1h.generated_at || new Date().toISOString(),
+            timeframe: '1h'
+          }
+        })
+        
+        setAllSignals(signals)
+        setTopSignals(topSigs.signals || [])
+        setMarket(status)
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error)
+      }
       setLoading(false)
     }
     load()
+    
+    // Auto-refresh every 15 minutes
+    const interval = setInterval(load, 15 * 60 * 1000)
+    return () => clearInterval(interval)
   }, [])
+
+  const handleForceRefresh = async () => {
+    try {
+      await forceRefreshPredictions()
+    } catch (error) {
+      alert('❌ Failed to refresh')
+    }
+  }
 
   const buyCount  = allSignals.filter(s => s.signal === 'BUY').length
   const sellCount = allSignals.filter(s => s.signal === 'SELL').length
@@ -60,7 +110,7 @@ export default function Dashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 34 }}>
         <MetricCard loading={loading} icon="🐂" label="Market Regime"  value={market.regime}     sub="Current trend"         color="#10b981" />
         <MetricCard loading={loading} icon="⚡" label="Volatility"      value={market.volatility} sub={`Fear & Greed: ${market.fearGreed}`} color="#f59e0b" />
-        <MetricCard loading={loading} icon="◈" label="Total Signals"   value={allSignals.length} sub={`${buyCount} BUY · ${sellCount} SELL · ${holdCount} HOLD`} color="#8b5cf6" />
+        <MetricCard loading={loading} icon="◈" label="Total Signals"   value={predictionsData.total_predictions || allSignals.length * 5} sub={`${buyCount} BUY · ${sellCount} SELL · ${holdCount} HOLD`} color="#8b5cf6" />
         <MetricCard loading={loading} icon="🎯" label="High Confidence" value={allSignals.filter(s => s.confidence > 80).length} sub="Signals above 80%" color="#6366f1" />
       </div>
 
@@ -92,7 +142,7 @@ export default function Dashboard() {
         </div>
         <div style={{ background: 'linear-gradient(145deg,rgba(30,41,59,0.8),rgba(15,23,42,0.9))', border: '1px solid rgba(71,85,105,0.35)', borderRadius: 18, padding: 26 }}>
           <h3 style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 14, margin: '0 0 20px', fontFamily: "'Space Mono',monospace" }}>Live Metrics</h3>
-          {[['Avg Confidence', `${Math.round(allSignals.reduce((a,s)=>a+s.confidence,0)/(allSignals.length||1))}%`],['Avg Probability',`${Math.round(allSignals.reduce((a,s)=>a+s.probability,0)/(allSignals.length||1))}%`],['BTC Dominance','52.4%'],['Fear & Greed',`${market.fearGreed} / 100`],['Coins Monitored',`${allSignals.length} / 17`],['Data Refresh','Every 15 min']].map(([l,v]) => (
+          {[['Avg Confidence', `${Math.round(allSignals.reduce((a,s)=>a+s.confidence,0)/(allSignals.length||1))}%`],['Avg Probability',`${Math.round(allSignals.reduce((a,s)=>a+s.probability,0)/(allSignals.length||1))}%`],['Fear & Greed',`${market.fearGreed} / 100`],['Coins Monitored',`${predictionsData.coins_tracked || 10} / 10`],['Active Signals',`${allSignals.length}`],['Data Refresh','Every 15 min']].map(([l,v]) => (
             <div key={l} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid rgba(71,85,105,0.18)' }}>
               <span style={{ color: '#64748b', fontSize: 13 }}>{l}</span>
               <span style={{ color: '#f1f5f9', fontSize: 13, fontWeight: 700, fontFamily: "'Space Mono',monospace" }}>{v}</span>

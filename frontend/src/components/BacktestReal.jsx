@@ -15,14 +15,12 @@ const BACKTEST_COINS = [
 const BACKTEST_INTERVALS = [
   { interval: '1m', name: '1 Minute' },
   { interval: '5m', name: '5 Minutes' },
-  { interval: '15m', name: '15 Minutes' },
   { interval: '30m', name: '30 Minutes' },
   { interval: '1h', name: '1 Hour' }
 ];
 
 const PREDICTION_TIMEFRAMES = [
-  { value: '15m', label: '15m', desc: 'Short' },
-  { value: '30m', label: '30m', desc: 'Medium' },
+  { value: '30m', label: '30m', desc: 'Short' },
   { value: '1h', label: '1h', desc: 'Balanced' },
   { value: '4h', label: '4h', desc: 'Low Noise' },
   { value: '1d', label: '1d', desc: 'High Acc' }

@@ -20,7 +20,8 @@ export default function Login() {
       if (mode === 'login') await login(email.trim(), pass)
       else                  await register(name.trim(), email.trim(), pass)
     } catch (err) {
-      setError(err.message || 'Something went wrong. Please try again.')
+      const errorMsg = err?.response?.data?.detail || err?.message || err?.error || (typeof err === 'string' ? err : 'Something went wrong. Please try again.')
+      setError(errorMsg)
     } finally {
       setLoading(false)
     }
@@ -77,7 +78,7 @@ export default function Login() {
 
           {error && (
             <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: '10px 14px', color: '#fca5a5', fontSize: 13 }}>
-              {typeof error === 'object' ? (error.message || error.detail || JSON.stringify(error)) : String(error)}
+              {typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error)}
             </div>
           )}
 

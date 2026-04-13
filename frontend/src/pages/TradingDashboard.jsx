@@ -227,8 +227,7 @@ export default function TradingDashboard() {
   const [predictionTimeframe, setPredictionTimeframe] = useState('1h')
 
   const TIMEFRAMES = [
-    { value: '15m', label: '15m', desc: 'Short' },
-    { value: '30m', label: '30m', desc: 'Medium' },
+    { value: '30m', label: '30m', desc: 'Short' },
     { value: '1h', label: '1h', desc: 'Balanced' },
     { value: '4h', label: '4h', desc: 'Low Noise' },
     { value: '1d', label: '1d', desc: 'High Acc' }
@@ -555,7 +554,7 @@ export default function TradingDashboard() {
             <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(71,85,105,0.18)', display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
               <span style={{ color: '#64748b', fontSize: 11, fontFamily: mono.fontFamily, marginRight: 6 }}>TF:</span>
               {[
-                {l:'15m',v:'15'},{l:'30m',v:'30'},{l:'1h',v:'60'},{l:'4h',v:'240'},{l:'1d',v:'D'}
+                {l:'30m',v:'30'},{l:'1h',v:'60'},{l:'4h',v:'240'},{l:'1d',v:'D'}
               ].map(({l,v}) => (
                 <button 
                   key={v} 

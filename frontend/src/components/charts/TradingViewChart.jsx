@@ -19,7 +19,6 @@ export default function TradingViewChart({ symbol = 'BTC', color = '#f7931a' }) 
   const timeRangeConfig = {
     '1m': { interval: 60000, points: 60, label: '1m', format: 'time' },
     '5m': { interval: 300000, points: 60, label: '5m', format: 'time' },
-    '15m': { interval: 900000, points: 60, label: '15m', format: 'time' },
     '30m': { interval: 1800000, points: 60, label: '30m', format: 'time' },
     '1H': { interval: 3600000, points: 24, label: '1H', format: 'time' },
     '4H': { interval: 14400000, points: 30, label: '4H', format: 'datetime' },
@@ -29,8 +28,6 @@ export default function TradingViewChart({ symbol = 'BTC', color = '#f7931a' }) 
   }
 
   const TIMEFRAMES = [
-    { label: '5m', minutes: 5 },
-    { label: '15m', minutes: 15 },
     { label: '30m', minutes: 30 },
     { label: '1h', minutes: 60 }
   ]

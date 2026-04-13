@@ -32,7 +32,8 @@ export function AuthProvider({ children }) {
       toast.success(`Welcome back, ${userData.name?.split(' ')[0] || 'Trader'}! 🚀`)
       navigate('/dashboard')
     } catch (error) {
-      toast.error(error.message || 'Login failed')
+      const errorMsg = typeof error === 'string' ? error : (error?.message || error?.detail || JSON.stringify(error) || 'Login failed')
+      toast.error(errorMsg)
       throw error
     }
   }, [navigate])
@@ -44,7 +45,8 @@ export function AuthProvider({ children }) {
       toast.success(`Account created! Welcome, ${userData.name?.split(' ')[0]}! 🚀`)
       navigate('/dashboard')
     } catch (error) {
-      toast.error(error.message || 'Registration failed')
+      const errorMsg = typeof error === 'string' ? error : (error?.message || error?.detail || JSON.stringify(error) || 'Registration failed')
+      toast.error(errorMsg)
       throw error
     }
   }, [navigate])

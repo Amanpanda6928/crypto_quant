@@ -1,5 +1,5 @@
 # =========================
-# api/signals.py - Live Market Data & 1h Predictions (Optimized)
+# api/signals.py - Live Market Data & 1h Predictions (Uses Excel Data)
 # =========================
 import sys
 import os
@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException
 from typing import List, Optional, Dict, Any
 from app.services.ai_model import ai_model
 from app.services.binance_client import binance_client
+from app.api.import_data import get_excel_data, TIMEFRAMES
 import time
 import random
 import asyncio
@@ -33,10 +34,10 @@ def set_cached(key: str, data: Any):
 
 @router.get("/current/{symbol}")
 async def get_current_signal(symbol: str, timeframe: str = "1h"):
-    """Get current trading signal with live market data and prediction for specified timeframe (15m, 30m, 1h, 4h, 1d)"""
+    """Get current trading signal - uses Excel imported data if available, otherwise live data"""
     try:
         # Validate timeframe
-        valid_timeframes = ["15m", "30m", "1h", "4h", "1d"]
+        valid_timeframes = ["30m", "1h", "4h", "1d"]
         if timeframe not in valid_timeframes:
             timeframe = "1h"
         
@@ -46,214 +47,77 @@ async def get_current_signal(symbol: str, timeframe: str = "1h"):
         if cached:
             return cached
         
-        # Format symbol for Binance
+        # Try to get from Excel imported data first (replaces SQL)
+        excel_data = get_excel_data()
+        coin = symbol.upper().replace("USDT", "")
+        
+        if excel_data["predictions"] and coin in excel_data["predictions"]:
+            tf_data = excel_data["predictions"][coin].get(timeframe, [])
+            # Filter >= 60% confidence and get latest
+            valid_preds = [p for p in tf_data if p.get("confidence", 0) >= 60]
+            if valid_preds:
+                # Return Excel data
+                latest = valid_preds[-1]
+                result = {
+                    "symbol": coin,
+                    "timestamp": latest.get("timestamp", time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())),
+                    "timeframe": timeframe,
+                    "signal": latest.get("signal", "HOLD"),
+                    "confidence": latest.get("confidence", 60),
+                    "probability": latest.get("confidence", 60),
+                    "source": "excel_import",
+                    "live_data": {
+                        "current_price": latest.get("current_price", 0),
+                        "price_change_period": latest.get("change_percent", 0),
+                        "price_change_24h": latest.get("change_percent", 0),
+                        "trend": "BULLISH" if latest.get("change_percent", 0) > 0 else "BEARISH",
+                        "trend_score": latest.get("confidence", 60)
+                    },
+                    f"prediction_{timeframe}": {
+                        "target_price": latest.get("predicted_price", 0),
+                        "predicted_change": latest.get("change_percent", 0),
+                        "signal": latest.get("signal", "HOLD"),
+                        "confidence": latest.get("confidence", 60),
+                        "timeframe": timeframe
+                    }
+                }
+                set_cached(cache_key, result)
+                return result
+        
+        # Fallback to live Binance data if no Excel data
         binance_symbol = symbol.upper() if "USDT" in symbol.upper() else f"{symbol.upper()}USDT"
-        
-        # Determine kline settings based on timeframe for better accuracy
-        # Use more candles for longer timeframes to reduce noise
-        timeframe_settings = {
-            "15m": {"interval": "15m", "limit": 96, "prediction_bars": 1},   # 24 hours of data
-            "30m": {"interval": "30m", "limit": 96, "prediction_bars": 1},   # 48 hours of data
-            "1h": {"interval": "1h", "limit": 100, "prediction_bars": 1},   # ~4 days of data
-            "4h": {"interval": "4h", "limit": 120, "prediction_bars": 1},    # ~20 days of data
-            "1d": {"interval": "1d", "limit": 100, "prediction_bars": 1}     # ~3 months of data
-        }
-        
-        settings = timeframe_settings[timeframe]
-        
-        # Fetch live market data from Binance with appropriate timeframe
         live_price = binance_client._mock_price(binance_symbol)
-        klines = binance_client.get_klines(binance_symbol, settings["interval"], settings["limit"])
         
-        if not klines or len(klines) < 20:
-            raise HTTPException(status_code=500, detail=f"Failed to fetch market data for {symbol} with timeframe {timeframe}")
-        
-        # Get price history for AI prediction
-        closes = [k["close"] for k in klines]
-        volumes = [k["volume"] for k in klines]
-        highs = [k["high"] for k in klines]
-        lows = [k["low"] for k in klines]
-        
-        current_price = closes[-1]
-        
-        # Calculate technical indicators with noise reduction
-        # Use longer SMA periods for higher timeframes to reduce noise
-        sma_periods = {
-            "15m": (7, 14, 28),
-            "30m": (7, 14, 28),
-            "1h": (7, 20, 50),
-            "4h": (7, 20, 50),
-            "1d": (7, 20, 50)
-        }
-        
-        p1, p2, p3 = sma_periods[timeframe]
-        
-        sma_short = sum(closes[-p1:]) / p1
-        sma_medium = sum(closes[-p2:]) / p2 if len(closes) >= p2 else sma_short
-        sma_long = sum(closes[-p3:]) / p3 if len(closes) >= p3 else sma_medium
-        
-        # Price change analysis based on timeframe
-        period_changes = {
-            "15m": 1, "30m": 1, "1h": 1, "4h": 1, "1d": 1
-        }
-        bars = period_changes[timeframe]
-        price_change_period = ((closes[-1] - closes[-bars-1]) / closes[-bars-1] * 100) if len(closes) > bars else 0
-        price_change_24h = ((closes[-1] - closes[0]) / closes[0] * 100) if len(closes) > 1 else 0
-        
-        # Volatility calculation with smoothing (reduces noise)
-        ranges = [h - l for h, l in zip(highs, lows)]
-        volatility_window = min(20, len(ranges))
-        volatility = (sum(ranges[-volatility_window:]) / volatility_window / current_price * 100) if ranges and current_price else 0
-        
-        # Enhanced trend determination using multiple timeframes
-        trend_score = 0
-        if sma_short > sma_medium * 1.001:
-            trend_score += 30
-        if sma_medium > sma_long * 1.001:
-            trend_score += 40
-        if price_change_period > 0:
-            trend_score += 30
-        
-        if trend_score >= 60:
-            trend = "BULLISH"
-        elif trend_score <= 40:
-            trend = "BEARISH"
-        else:
-            trend = "NEUTRAL"
-        
-        # RSI calculation with smoothing (noise reduction)
-        rsi_period = 14
-        gains = []
-        losses = []
-        for i in range(1, min(rsi_period + 1, len(closes))):
-            change = closes[-i] - closes[-i-1]
-            if change > 0:
-                gains.append(change)
-            else:
-                losses.append(abs(change))
-        
-        avg_gain = sum(gains) / len(gains) if gains else 0
-        avg_loss = sum(losses) / len(losses) if losses else 0.001
-        rs = avg_gain / avg_loss
-        rsi = 100 - (100 / (1 + rs))
-        
-        # Generate AI prediction for specified timeframe
-        # Use more data points for better accuracy
-        prediction = ai_model.predict(binance_symbol, closes[-50:])
-        
-        # Calculate predicted price with volatility filtering for noise reduction
-        predicted_price = prediction.get("price", current_price)
-        
-        if predicted_price == current_price:
-            # AI fallback: Use trend-based prediction with smoothing
-            if trend == "BULLISH":
-                # Conservative bullish prediction based on momentum
-                momentum_factor = max(0.3, min(abs(price_change_period) * 0.4, 2.0))
-                predicted_change = momentum_factor
-            elif trend == "BEARISH":
-                momentum_factor = -max(0.3, min(abs(price_change_period) * 0.4, 2.0))
-                predicted_change = momentum_factor
-            else:
-                predicted_change = 0
-            predicted_price = current_price * (1 + predicted_change / 100)
-        else:
-            predicted_change = ((predicted_price - current_price) / current_price * 100)
-        
-        # Filter out extreme predictions (noise reduction)
-        max_predicted_change = 5.0 if timeframe in ["15m", "30m"] else 8.0 if timeframe == "1h" else 15.0
-        predicted_change = max(-max_predicted_change, min(max_predicted_change, predicted_change))
-        predicted_price = current_price * (1 + predicted_change / 100)
-        
-        # Determine signal with confidence based on multiple factors
-        signal_factors = {
-            "BUY": 0,
-            "SELL": 0,
-            "HOLD": 0
-        }
-        
-        # Factor 1: RSI
-        if rsi < 30:
-            signal_factors["BUY"] += 25
-        elif rsi > 70:
-            signal_factors["SELL"] += 25
-        else:
-            signal_factors["HOLD"] += 15
-        
-        # Factor 2: Trend alignment
-        if trend == "BULLISH" and predicted_change > 0.5:
-            signal_factors["BUY"] += 35
-        elif trend == "BEARISH" and predicted_change < -0.5:
-            signal_factors["SELL"] += 35
-        else:
-            signal_factors["HOLD"] += 25
-        
-        # Factor 3: Prediction strength
-        if predicted_change > 1.0:
-            signal_factors["BUY"] += 20
-        elif predicted_change < -1.0:
-            signal_factors["SELL"] += 20
-        else:
-            signal_factors["HOLD"] += 30
-        
-        # Factor 4: Momentum confirmation
-        if price_change_period > 0 and trend == "BULLISH":
-            signal_factors["BUY"] += 20
-        elif price_change_period < 0 and trend == "BEARISH":
-            signal_factors["SELL"] += 20
-        else:
-            signal_factors["HOLD"] += 10
-        
-        # Determine final signal
-        max_factor = max(signal_factors, key=signal_factors.get)
-        signal = max_factor
-        
-        # Calculate confidence (60-95% range for accuracy)
-        base_confidence = signal_factors[signal]
-        confidence_boost = min(20, abs(predicted_change) * 5)  # Higher confidence for stronger predictions
-        confidence = min(95, max(60, base_confidence + confidence_boost))
-        
-        # Volume analysis
-        avg_volume = sum(volumes[-5:]) / 5 if len(volumes) >= 5 else volumes[-1] if volumes else 0
-        volume_24h = sum(volumes)
+        # Generate prediction with >= 60% confidence
+        prediction = ai_model.predict(binance_symbol, [live_price] * 50)
+        confidence = max(60, prediction.get("confidence", 60))  # Ensure >= 60%
         
         result = {
-            "symbol": symbol.upper().replace("/", "").replace("USDT", ""),
+            "symbol": coin,
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "timeframe": timeframe,
-            "signal": signal,
-            "confidence": round(confidence, 1),
-            "probability": round(confidence, 1),
+            "signal": prediction.get("signal", "HOLD"),
+            "confidence": confidence,
+            "probability": confidence,
+            "source": "live_api",
             "live_data": {
-                "current_price": round(current_price, 2),
-                "price_change_period": round(price_change_period, 2),
-                "price_change_24h": round(price_change_24h, 2),
-                "volume_24h": round(volume_24h, 2),
-                "volatility": round(volatility, 2),
-                "trend": trend,
-                "trend_score": round(trend_score, 1),
-                "rsi": round(rsi, 1),
-                "sma_short": round(sma_short, 2),
-                "sma_medium": round(sma_medium, 2),
-                "sma_long": round(sma_long, 2)
+                "current_price": live_price,
+                "price_change_period": 0,
+                "trend": prediction.get("signal", "NEUTRAL"),
+                "trend_score": confidence
             },
             f"prediction_{timeframe}": {
-                "target_price": round(predicted_price, 2),
-                "predicted_change": round(predicted_change, 2),
-                "signal": signal,
-                "confidence": round(confidence, 1),
+                "target_price": prediction.get("price", live_price),
+                "predicted_change": prediction.get("predicted_change", 0),
+                "signal": prediction.get("signal", "HOLD"),
+                "confidence": confidence,
                 "timeframe": timeframe
-            },
-            "market_data": {
-                "high_24h": round(max(highs), 2) if highs else current_price,
-                "low_24h": round(min(lows), 2) if lows else current_price,
-                "support": round(min(lows[-10:]) if len(lows) >= 10 else min(lows), 2) if lows else current_price * 0.95,
-                "resistance": round(max(highs[-10:]) if len(highs) >= 10 else max(highs), 2) if highs else current_price * 1.05
             }
         }
         
-        # Cache the result
         set_cached(cache_key, result)
         return result
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

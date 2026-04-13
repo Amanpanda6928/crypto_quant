@@ -71,7 +71,26 @@ class TokenResponse(BaseModel):
 @router.post("/login", response_model=TokenResponse)
 async def login(request: LoginRequest):
     """Authenticate user and return JWT token"""
-    user = users_db.get(request.username)
+    # Try to find user by username or email
+    user = None
+    
+    # First try by username
+    if request.username:
+        user = users_db.get(request.username)
+    
+    # If not found, try by email
+    if not user and request.email:
+        for u in users_db.values():
+            if u.get("email") == request.email:
+                user = u
+                break
+    
+    # Also check if username is actually an email
+    if not user and request.username and "@" in request.username:
+        for u in users_db.values():
+            if u.get("email") == request.username:
+                user = u
+                break
     
     if not user or not verify_password(request.password, user["password"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")

@@ -111,7 +111,7 @@ async def get_all_strategies():
 async def run_strategy_backtest(
     symbol: str = Query(default="BTCUSDT"),
     strategy: str = Query(default="SMA_Crossover"),
-    interval: str = Query(default="1h", enum=["1m", "5m", "15m", "1h", "4h", "1d"]),
+    interval: str = Query(default="1h", enum=["1m", "5m", "30m", "1h", "4h", "1d"]),
     limit: int = Query(default=500, ge=100, le=1000),
     initial_capital: float = Query(default=10000.0)
 ):
@@ -204,7 +204,7 @@ async def run_strategy_backtest(
 @router.post("/backtest-all")
 async def run_all_strategies(
     symbol: str = Query(default="BTCUSDT"),
-    interval: str = Query(default="1h", enum=["1m", "5m", "15m", "1h", "4h", "1d"]),
+    interval: str = Query(default="1h", enum=["1m", "5m", "30m", "1h", "4h", "1d"]),
     limit: int = Query(default=500, ge=100, le=1000),
     initial_capital: float = Query(default=10000.0)
 ):

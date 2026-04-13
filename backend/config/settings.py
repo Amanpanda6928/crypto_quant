@@ -41,7 +41,7 @@ COINS = [
     "XLMUSDT", "ICPUSDT"
 ]
 
-TIMEFRAMES = ["1m", "5m", "15m", "1h"]
+TIMEFRAMES = ["30m", "1h", "4h", "1d"]
 
 # Model configuration
 MODEL_SEQUENCE_LENGTH = 60

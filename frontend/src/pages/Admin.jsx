@@ -19,8 +19,15 @@ export default function Admin() {
 
   const handlePlanChange = async (id, plan) => {
     setUpdating(id)
-    try { await updateUserPlan(id, plan); setUsers(p => p.map(u => u.id===id?{...u,plan}:u)); toast.success(`Plan updated to ${plan}`) }
-    catch { toast.error('Failed to update plan') }
+    try { 
+      await updateUserPlan(id, plan); 
+      setUsers(p => p.map(u => u.id===id?{...u,plan}:u)); 
+      toast.success(`Plan updated to ${plan}`) 
+    }
+    catch (err) { 
+      const errorMsg = err?.response?.data?.detail || err?.message || err?.error || 'Failed to update plan'
+      toast.error(errorMsg) 
+    }
     finally { setUpdating(null) }
   }
 

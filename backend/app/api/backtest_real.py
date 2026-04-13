@@ -135,7 +135,6 @@ async def get_available_intervals():
         intervals = [
             {"interval": "1m", "name": "1 Minute", "duration": "1 minute"},
             {"interval": "5m", "name": "5 Minutes", "duration": "5 minutes"},
-            {"interval": "15m", "name": "15 Minutes", "duration": "15 minutes"},
             {"interval": "30m", "name": "30 Minutes", "duration": "30 minutes"},
             {"interval": "1h", "name": "1 Hour", "duration": "1 hour"},
             {"interval": "4h", "name": "4 Hours", "duration": "4 hours"},

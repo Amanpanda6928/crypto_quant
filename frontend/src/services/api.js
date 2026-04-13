@@ -31,6 +31,7 @@ api.interceptors.response.use(
 )
 
 // ─── Coin metadata (UI only — not from API) ────────────────────────────────────
+// 10 coins for portfolio
 export const ALL_COINS = [
   { symbol: 'BTC',  name: 'Bitcoin',           color: '#f7931a' },
   { symbol: 'ETH',  name: 'Ethereum',           color: '#627eea' },
@@ -42,13 +43,6 @@ export const ALL_COINS = [
   { symbol: 'DOGE', name: 'Dogecoin',           color: '#c2a633' },
   { symbol: 'DOT',  name: 'Polkadot',           color: '#e6007a' },
   { symbol: 'LINK', name: 'Chainlink',          color: '#2a5ada' },
-  { symbol: 'MATIC',name: 'Polygon',            color: '#8247e5' },
-  { symbol: 'LTC',  name: 'Litecoin',           color: '#bfbbbb' },
-  { symbol: 'BCH',  name: 'Bitcoin Cash',       color: '#0ac18e' },
-  { symbol: 'UNI',  name: 'Uniswap',            color: '#ff007a' },
-  { symbol: 'ATOM', name: 'Cosmos',             color: '#6f75c8' },
-  { symbol: 'XLM',  name: 'Stellar',            color: '#7d00ff' },
-  { symbol: 'ICP',  name: 'Internet Computer',  color: '#29abe2' },
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -211,7 +205,7 @@ export async function fetchSignalsBatch(symbols, timeframe = '1h') {
       const signals = ['BUY', 'SELL', 'HOLD']
       const signal = signals[Math.floor(r() * 3)]
       const confidence = Math.floor(r() * 35) + 55
-      const targetMultipliers = { '15m': 1.002, '30m': 1.005, '1h': 1.01, '4h': 1.03, '1d': 1.08 }
+      const targetMultipliers = { '30m': 1.005, '1h': 1.01, '4h': 1.03, '1d': 1.08 }
       const basePrices = { 'BTC': 67500, 'ETH': 3450, 'BNB': 585, 'SOL': 145, 'XRP': 0.62 }
       const basePrice = basePrices[coin.symbol] || 100
       const targetMult = targetMultipliers[timeframe] || 1.01
@@ -252,7 +246,7 @@ export async function fetchSignalsBatch(symbols, timeframe = '1h') {
 /**
  * GET /api/signals/predictions/{timeframe}/{symbol}
  * Returns: { symbol, timestamp, current_price, prediction, technical_indicators, market_data, analysis }
- * timeframe: 15m, 30m, 1h, 4h, 1d
+ * timeframe: 30m, 1h, 4h, 1d
  */
 export async function fetchPredictionByTimeframe(symbol, timeframe = '1h') {
   try {
@@ -391,7 +385,7 @@ export async function fetchPrediction(symbol) {
 
 /**
  * GET /api/live/klines/{symbol}
- * Query params: interval (1m, 5m, 15m, 1h, 4h, 1d), limit
+ * Query params: interval (30m, 1h, 4h, 1d), limit
  * Returns: { symbol, interval, candles: [{ time, open, high, low, close, volume }], timestamp }
  */
 export async function fetchBinanceKlines(symbol, interval = '1h', limit = 100) {
@@ -413,7 +407,7 @@ export async function fetchBinanceKlines(symbol, interval = '1h', limit = 100) {
 
 /**
  * GET /api/live/klines/{symbol}
- * Query params: interval (1m, 5m, 15m, 1h, 4h, 1d), limit
+ * Query params: interval (30m, 1h, 4h, 1d), limit
  * Returns: { symbol, interval, candles: [...], analysis: {...}, timestamp }
  */
 export async function fetchKlines(symbol, interval = '1h', limit = 60) {
@@ -669,6 +663,142 @@ export async function startBot({ strategy = 'ai_signals', coins = [], riskLevel 
   } catch (error) {
     const msg = error.response?.data?.detail || 'Failed to start bot'
     throw new Error(msg)
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// LIVE EXCEL  —  /api/live-excel/* (Auto-generated every 30 min)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * GET /api/live-excel/status
+ * Returns: { has_data, last_updated, next_update, predictions_count, coins, timeframes }
+ */
+export async function fetchLiveExcelStatus() {
+  try {
+    const { data } = await api.get('/api/live-excel/status')
+    return data
+  } catch (error) {
+    console.warn('fetchLiveExcelStatus failed:', error.message)
+    return null
+  }
+}
+
+/**
+ * GET /api/live-excel/download
+ * Returns: Excel file (auto-generated every 30 min)
+ */
+export async function downloadLatestExcel() {
+  try {
+    const response = await api.get('/api/live-excel/download', {
+      responseType: 'blob'
+    })
+    
+    const blob = new Blob([response.data], { 
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `live_predictions_${new Date().toISOString().slice(0,16).replace(/[T:]/g,'-')}.xlsx`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    
+    return true
+  } catch (error) {
+    console.error('Download failed:', error)
+    throw new Error('Failed to download latest Excel')
+  }
+}
+
+/**
+ * GET /api/live-excel/data
+ * Query params: coin, timeframe, min_confidence
+ * Returns: { count, last_updated, next_update, predictions }
+ */
+export async function fetchLivePredictionsData(coin = null, timeframe = null, minConfidence = 60) {
+  try {
+    const params = { min_confidence: minConfidence }
+    if (coin) params.coin = coin
+    if (timeframe) params.timeframe = timeframe
+    
+    const { data } = await api.get('/api/live-excel/data', { params })
+    return data
+  } catch (error) {
+    console.warn('fetchLivePredictionsData failed:', error.message)
+    return null
+  }
+}
+
+/**
+ * POST /api/live-excel/refresh
+ * Force immediate regeneration of predictions
+ */
+export async function forceRefreshPredictions() {
+  try {
+    const { data } = await api.post('/api/live-excel/refresh')
+    return data
+  } catch (error) {
+    console.error('Force refresh failed:', error)
+    throw new Error('Failed to refresh predictions')
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXPORT  —  /api/export/*
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * GET /api/export/predictions/excel
+ * Query params: coins, timeframes, format
+ * Returns: Excel file download
+ */
+export async function exportPredictionsToExcel(coins = null, timeframes = '30m,1h,4h,1d', format = 'xlsx') {
+  try {
+    const params = { timeframes, format }
+    if (coins) params.coins = coins
+    
+    const response = await api.get('/api/export/predictions/excel', {
+      params,
+      responseType: 'blob'  // Important for file downloads
+    })
+    
+    // Create download link
+    const blob = new Blob([response.data], { 
+      type: format === 'csv' ? 'text/csv' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `predictions_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.${format}`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    
+    return true
+  } catch (error) {
+    console.error('Export failed:', error)
+    throw new Error('Failed to export predictions')
+  }
+}
+
+/**
+ * GET /api/export/predictions/json
+ * Returns predictions as JSON
+ */
+export async function exportPredictionsToJSON(coins = null, timeframes = '30m,1h,4h,1d') {
+  try {
+    const params = { timeframes }
+    if (coins) params.coins = coins
+    
+    const { data } = await api.get('/api/export/predictions/json', { params })
+    return data
+  } catch (error) {
+    console.error('Export failed:', error)
+    throw new Error('Failed to export predictions')
   }
 }
 

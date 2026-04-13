@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Bar, Cell, ReferenceLine } from 'recharts'
+import { fetchKlines, fetchPredictionByTimeframe } from '../services/api'
 
 export default function LiveTradingChart({ symbol = 'BTC', color = '#f7931a' }) {
   const [data, setData] = useState([])
@@ -8,197 +9,141 @@ export default function LiveTradingChart({ symbol = 'BTC', color = '#f7931a' }) 
   const [price, setPrice] = useState(0)
   const [change, setChange] = useState(0)
   const [predictions, setPredictions] = useState({})
-  const [backtestResults, setBacktestResults] = useState(null)
-  const [showBacktest, setShowBacktest] = useState(false)
+  const [loading, setLoading] = useState(true)
   const intervalRef = useRef(null)
 
   const TIMEFRAMES = [
-    { label: '5m', minutes: 5 },
     { label: '15m', minutes: 15 },
     { label: '30m', minutes: 30 },
     { label: '1h', minutes: 60 }
   ]
 
-  const generateCandle = (prevClose, time, isFuture = false) => {
-    const volatility = prevClose * 0.015
-    const trendBias = isFuture ? (Math.random() - 0.3) * 0.02 : 0
-    const open = prevClose
-    const close = open + (Math.random() - 0.5 + trendBias) * volatility * 2
-    const high = Math.max(open, close) + Math.random() * volatility * 0.8
-    const low = Math.min(open, close) - Math.random() * volatility * 0.8
-    const volume = Math.random() * 1000 + 500
-    return { time, open, high, low, close, volume, isFuture }
+  const timeRangeConfig = {
+    '1m': { interval: '1m', points: 60, label: '1m', format: 'time' },
+    '5m': { interval: '5m', points: 60, label: '5m', format: 'time' },
+    '30m': { interval: '30m', points: 60, label: '30m', format: 'time' },
+    '1H': { interval: '1h', points: 24, label: '1H', format: 'time' },
+    '4H': { interval: '4h', points: 30, label: '4H', format: 'datetime' },
+    '1D': { interval: '1d', points: 30, label: '1D', format: 'date' }
   }
 
-  const generatePredictions = (currentPrice) => {
-    const predictions = {}
-    let projectedPrice = currentPrice
-    
-    TIMEFRAMES.forEach((tf, idx) => {
-      const hoursAhead = tf.minutes / 60
-      const baseVolatility = 0.003 * Math.sqrt(hoursAhead)
-      const volatility = baseVolatility
-      
-      const trendStrength = Math.sin(Date.now() / 60000 + idx) * 0.005
-      const randomComponent = (Math.random() - 0.5) * volatility * 2
-      
-      const priceChangePercent = trendStrength + randomComponent
-      projectedPrice = currentPrice * (1 + priceChangePercent)
-      
-      const profitPercent = Math.max(-5, Math.min(5, priceChangePercent * 100))
-      
-      const confidence = Math.min(95, 55 + Math.abs(profitPercent) * 3 + Math.random() * 10)
-      const signal = profitPercent > 2 ? 'STRONG_BUY' : profitPercent > 0.5 ? 'BUY' : profitPercent < -2 ? 'STRONG_SELL' : profitPercent < -0.5 ? 'SELL' : 'HOLD'
-      
-      predictions[tf.label] = {
-        price: projectedPrice,
-        profit: profitPercent,
-        confidence: confidence,
-        signal: signal,
-        direction: profitPercent > 0 ? 'up' : 'down'
-      }
-    })
-    return predictions
-  }
-
-  const runBacktest = (historicalData, timeframe) => {
-    if (historicalData.length < 10) return null
-    
-    const maShort = timeframe === '1H' ? 5 : timeframe === '24H' ? 6 : 7
-    const maLong = timeframe === '1H' ? 10 : timeframe === '24H' ? 12 : 14
-    
-    let trades = 0
-    let wins = 0
-    let totalProfit = 0
-    let maxDrawdown = 0
-    let peak = 100
-    let position = null
-    let entryPrice = 0
-    let equity = 100
-    
-    for (let i = 5; i < historicalData.length - 1; i++) {
-      const current = historicalData[i]
-      const shortMA = historicalData.slice(i - maShort, i).reduce((a, b) => a + b.close, 0) / maShort
-      const longMA = historicalData.slice(i - maLong, i).reduce((a, b) => a + b.close, 0) / maLong
-      
-      if (!position && shortMA > longMA && current.close > shortMA) {
-        position = 'LONG'
-        entryPrice = current.close
-      } else if (position === 'LONG' && (shortMA < longMA || current.close < entryPrice * 0.98)) {
-        const profit = ((current.close - entryPrice) / entryPrice) * 100
-        trades++
-        if (profit > 0) wins++
-        totalProfit += profit
-        equity = equity * (1 + profit / 100)
-        
-        if (equity > peak) peak = equity
-        const drawdown = ((peak - equity) / peak) * 100
-        if (drawdown > maxDrawdown) maxDrawdown = drawdown
-        
-        position = null
-      }
-    }
-    
-    return {
-      trades,
-      winRate: trades > 0 ? ((wins / trades) * 100).toFixed(1) : 0,
-      totalProfit: totalProfit.toFixed(2),
-      maxDrawdown: maxDrawdown.toFixed(2),
-      avgProfit: trades > 0 ? (totalProfit / trades).toFixed(2) : 0,
-      sharpe: trades > 0 ? (totalProfit / Math.max(1, maxDrawdown)).toFixed(2) : 0
-    }
-  }
-
-  const generateFutureCandles = (lastClose, timeframe) => {
-    const future = []
-    let currentPrice = lastClose
-    const candleCount = 12 // Always 12 future candles (up to 1 hour)
-    
-    for (let i = 1; i <= candleCount; i++) {
-      const time = `+${i * 5}m`
-      const candle = generateCandle(currentPrice, time, true)
-      future.push(candle)
-      currentPrice = candle.close
-    }
-    return future
-  }
-
-  const formatTime = (date, format) => {
+  const formatTime = (timestamp, format) => {
+    const date = new Date(timestamp)
     if (format === 'time') return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     if (format === 'date') return date.toLocaleDateString([], { month: 'short', day: 'numeric' })
     return date.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
   }
-  
-  const generateInitialData = () => {
-    const basePrice = symbol === 'BTC' ? 45000 : symbol === 'ETH' ? 2800 : 100
-    const config = timeRangeConfig[timeRange]
-    const points = config.points
-    const interval = config.interval
-    const dataPoints = []
-    let currentPrice = basePrice
-    
-    for (let i = 0; i < points; i++) {
-      const time = new Date(Date.now() - (points - i) * interval)
-      const candle = generateCandle(currentPrice, formatTime(time, config.format))
-      dataPoints.push(candle)
-      currentPrice = candle.close
+
+  const fetchRealData = async () => {
+    try {
+      setLoading(true)
+      const config = timeRangeConfig[timeRange] || timeRangeConfig['5m']
+      
+      // Fetch real klines from backend
+      const klinesData = await fetchKlines(symbol, config.interval, config.points)
+      
+      if (klinesData && klinesData.candles && klinesData.candles.length > 0) {
+        const candles = klinesData.candles.map(c => ({
+          time: formatTime(c.time || c.open_time, config.format),
+          open: c.open,
+          high: c.high,
+          low: c.low,
+          close: c.close,
+          volume: c.volume,
+          timestamp: c.time || c.open_time
+        }))
+        
+        setData(candles)
+        const currentPrice = candles[candles.length - 1].close
+        const firstPrice = candles[0].open
+        setPrice(currentPrice)
+        setChange(((currentPrice - firstPrice) / firstPrice) * 100)
+        
+        // Fetch real predictions from backend
+        const timeframeMap = { '1m': '30m', '5m': '30m', '30m': '30m', '1H': '1h', '4H': '4h', '1D': '1d' }
+        const predictionTimeframe = timeframeMap[timeRange] || '1h'
+        
+        const predictionData = await fetchPredictionByTimeframe(symbol, predictionTimeframe)
+        
+        if (predictionData && predictionData.prediction) {
+          const pred = predictionData.prediction
+          const newPredictions = {}
+          
+          TIMEFRAMES.forEach(tf => {
+            const profitPercent = pred.predicted_change || 0
+            const confidence = pred.confidence || 60
+            const signal = pred.signal || 'HOLD'
+            const targetPrice = pred.target_price || currentPrice * (1 + profitPercent / 100)
+            
+            newPredictions[tf.label] = {
+              price: targetPrice,
+              profit: profitPercent,
+              confidence: confidence,
+              signal: signal === 'BUY' && profitPercent > 2 ? 'STRONG_BUY' : 
+                      signal === 'BUY' ? 'BUY' :
+                      signal === 'SELL' && profitPercent < -2 ? 'STRONG_SELL' :
+                      signal === 'SELL' ? 'SELL' : 'HOLD',
+              direction: profitPercent > 0 ? 'up' : 'down'
+            }
+          })
+          
+          setPredictions(newPredictions)
+          
+          // Generate future candles based on prediction
+          const future = generateFutureCandles(currentPrice, predictionData)
+          setFutureData(future)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch real data:', error)
+    } finally {
+      setLoading(false)
     }
+  }
+
+  const generateFutureCandles = (lastClose, predictionData) => {
+    const future = []
+    let currentPrice = lastClose
+    const candleCount = 12
     
-    setPrice(currentPrice)
-    setChange(((currentPrice - basePrice) / basePrice) * 100)
-    setPredictions(generatePredictions(currentPrice))
+    const pred = predictionData?.prediction || {}
+    const targetPrice = pred.target_price || lastClose
+    const totalChange = targetPrice - lastClose
+    const changePerCandle = totalChange / candleCount
     
-    const future = generateFutureCandles(currentPrice, timeRange)
-    setFutureData(future)
-    
-    const backtest = runBacktest([...dataPoints])
-    setBacktestResults(backtest)
-    
-    return dataPoints
+    for (let i = 1; i <= candleCount; i++) {
+      const progress = i / candleCount
+      const predictedClose = lastClose + (changePerCandle * i)
+      const volatility = Math.abs(changePerCandle) * 0.3
+      
+      const open = i === 1 ? lastClose : future[future.length - 1].close
+      const close = predictedClose + (Math.random() - 0.5) * volatility
+      const high = Math.max(open, close) + Math.random() * volatility * 0.5
+      const low = Math.min(open, close) - Math.random() * volatility * 0.5
+      const volume = Math.random() * 1000 + 500
+      
+      future.push({
+        time: `+${i * 5}m`,
+        open: Math.round(open * 100) / 100,
+        high: Math.round(high * 100) / 100,
+        low: Math.round(low * 100) / 100,
+        close: Math.round(close * 100) / 100,
+        volume: Math.round(volume),
+        isFuture: true
+      })
+    }
+    return future
   }
 
   useEffect(() => {
-    const initialData = generateInitialData()
-    setData(initialData)
+    fetchRealData()
     
-    intervalRef.current = setInterval(() => {
-      setData(prevData => {
-        const lastPrice = prevData[prevData.length - 1]?.close || 45000
-        const newCandle = generateCandle(lastPrice, formatTime(new Date(), timeRangeConfig[timeRange].format))
-        const newData = [...prevData.slice(1), newCandle]
-        
-        setPrice(newCandle.close)
-        const firstPrice = prevData[0]?.open || lastPrice
-        setChange(((newCandle.close - firstPrice) / firstPrice) * 100)
-        
-        const newPredictions = generatePredictions(newCandle.close)
-        setPredictions(newPredictions)
-        
-        const future = generateFutureCandles(newCandle.close, timeRange)
-        setFutureData(future)
-        
-        const backtest = runBacktest(newData, timeRange)
-        setBacktestResults(backtest)
-        
-        return newData
-      })
-    }, 5000)
-
+    // Refresh every 5 seconds
+    intervalRef.current = setInterval(fetchRealData, 5000)
+    
     return () => clearInterval(intervalRef.current)
   }, [symbol, timeRange])
 
-  const timeRangeConfig = {
-    '1m': { interval: 60000, points: 60, label: '1m', format: 'time' },
-    '5m': { interval: 300000, points: 60, label: '5m', format: 'time' },
-    '15m': { interval: 900000, points: 60, label: '15m', format: 'time' },
-    '30m': { interval: 1800000, points: 60, label: '30m', format: 'time' },
-    '1H': { interval: 3600000, points: 24, label: '1H', format: 'time' },
-    '4H': { interval: 14400000, points: 30, label: '4H', format: 'datetime' },
-    '1D': { interval: 86400000, points: 30, label: '1D', format: 'date' },
-    '7D': { interval: 604800000, points: 12, label: '1W', format: 'date' },
-    '30D': { interval: 2592000000, points: 30, label: '1M', format: 'date' }
-  }
-  
   const timeRanges = Object.keys(timeRangeConfig)
   const isPositive = change >= 0
   const allData = [...data, ...futureData.map(d => ({ ...d, isFuture: true }))]
@@ -342,53 +287,6 @@ export default function LiveTradingChart({ symbol = 'BTC', color = '#f7931a' }) 
             )
           })}
         </div>
-      </div>
-
-      {/* Backtesting */}
-      <div style={{ background: 'linear-gradient(145deg,rgba(30,41,59,0.8),rgba(15,23,42,0.9))', border: '1px solid rgba(71,85,105,0.35)', borderRadius: 18, padding: 22 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 18 }}>📊</span>
-            <h3 style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 14, margin: 0, fontFamily: "'Space Mono',monospace" }}>
-              Backtesting Results
-            </h3>
-          </div>
-          <button onClick={() => setShowBacktest(!showBacktest)}
-            style={{ padding: '6px 14px', borderRadius: 8, background: showBacktest ? 'rgba(139,92,246,0.2)' : 'transparent', border: `1px solid ${showBacktest ? 'rgba(139,92,246,0.5)' : 'rgba(71,85,105,0.3)'}`, color: showBacktest ? '#a78bfa' : '#64748b', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
-            {showBacktest ? 'Hide Details' : 'Show Details'}
-          </button>
-        </div>
-
-        {backtestResults && (
-          <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12 }}>
-              {[['Trades', backtestResults.trades], ['Win Rate', `${backtestResults.winRate}%`], 
-                ['Total Profit', `${backtestResults.totalProfit}%`], ['Max Drawdown', `${backtestResults.maxDrawdown}%`],
-                ['Avg Profit', `${backtestResults.avgProfit}%`], ['Sharpe', backtestResults.sharpe]
-              ].map(([label, val]) => (
-                <div key={label} style={{ textAlign: 'center', padding: '10px', background: 'rgba(15,23,42,0.4)', borderRadius: 10 }}>
-                  <div style={{ color: '#64748b', fontSize: 10, marginBottom: 4, textTransform: 'uppercase' }}>{label}</div>
-                  <div style={{ color: (label === 'Total Profit' || label === 'Win Rate') && parseFloat(val) > 0 ? '#10b981' : (label === 'Total Profit' || label === 'Max Drawdown') && parseFloat(val) < 0 ? '#ef4444' : '#f1f5f9', fontSize: 16, fontWeight: 800, fontFamily: "'Space Mono',monospace" }}>
-                    {val}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {showBacktest && (
-              <div style={{ marginTop: 16, padding: 14, background: 'rgba(15,23,42,0.5)', borderRadius: 12 }}>
-                <h4 style={{ color: '#a78bfa', fontSize: 12, margin: '0 0 10px' }}>Strategy Details</h4>
-                <p style={{ color: '#94a3b8', fontSize: 12, lineHeight: 1.6, margin: 0 }}>
-                  <strong style={{ color: '#f1f5f9' }}>Strategy:</strong> Moving Average Crossover (5-period vs 10-period)<br/><br/>
-                  <strong style={{ color: '#f1f5f9' }}>Entry:</strong> When short MA crosses above long MA with price above both MAs<br/><br/>
-                  <strong style={{ color: '#f1f5f9' }}>Exit:</strong> When short MA crosses below long MA OR stop-loss at 2%<br/><br/>
-                  <strong style={{ color: '#f1f5f9' }}>Period:</strong> Last {timeRange} of historical data<br/><br/>
-                  <strong style={{ color: '#f1f5f9' }}>Risk Management:</strong> Fixed position size, no leverage applied
-                </p>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   )

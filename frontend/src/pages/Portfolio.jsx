@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
-import { ALL_COINS, fetchPortfolio, savePortfolio, generateMockSignals } from '../services/api'
+import { ALL_COINS, fetchPortfolio, savePortfolio } from '../services/api'
+import { getLivePredictions } from '../api/livePredictionsApi'
 
 const SIG_CFG = {
   BUY:  { color: '#34d399', border: 'rgba(16,185,129,0.4)', bg: 'rgba(16,185,129,0.12)' },
@@ -17,10 +18,26 @@ export default function Portfolio() {
 
   useEffect(() => {
     async function load() {
-      const [portfolio, sigs] = await Promise.all([fetchPortfolio(), Promise.resolve(generateMockSignals())])
-      setSelected(portfolio.coins || [])
-      setSaved(portfolio.coins || [])
-      setSignals(sigs)
+      try {
+        const [portfolio, livePreds] = await Promise.all([fetchPortfolio(), getLivePredictions()])
+        setSelected(portfolio.coins || [])
+        setSaved(portfolio.coins || [])
+        
+        // Convert live predictions to signals format
+        const predictionsMap = livePreds.predictions || {}
+        const sigs = Object.entries(predictionsMap).map(([coin, data]) => {
+          const tf1h = data.predictions?.['1h'] || data['1h'] || {}
+          return {
+            coin: coin,
+            signal: tf1h.signal || 'HOLD',
+            confidence: tf1h.confidence || 60
+          }
+        })
+        setSignals(sigs)
+      } catch (error) {
+        console.error('Failed to load portfolio data:', error)
+        toast.error('Failed to load data')
+      }
       setLoading(false)
     }
     load()
@@ -41,7 +58,7 @@ export default function Portfolio() {
     <div style={{ animation: 'fadeUp 0.4s ease both' }}>
       <div style={{ marginBottom: 32, paddingBottom: 22, borderBottom: '1px solid rgba(71,85,105,0.18)' }}>
         <h1 style={{ color: '#f1f5f9', fontWeight: 800, fontSize: 26, margin: '0 0 4px', fontFamily: "'Space Mono',monospace", letterSpacing: '-0.03em' }}>Portfolio</h1>
-        <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>Select coins to monitor and receive AI signals for</p>
+        <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>Select from 10 coins to monitor and receive AI signals for</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 28 }}>

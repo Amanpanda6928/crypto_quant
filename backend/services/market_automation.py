@@ -1,6 +1,6 @@
 """
 24/7 Multi-Timeframe Market Data Automation Service
-Fetches candle data for 15m, 30m, 1h, 4h, 1d timeframes
+Fetches candle data for 30m, 1h, 4h, 1d timeframes
 Generates predictions every 15 minutes
 Auto-deletes data older than 1 day
 """
@@ -26,12 +26,12 @@ from db.database import init_db
 class MultiTimeframeAutomation:
     """
     Automated service for multi-timeframe predictions:
-    - Fetches candle data for 15m, 30m, 1h, 4h, 1d
+    - Fetches candle data for 30m, 1h, 4h, 1d
     - Generates predictions every 15 minutes
     - Auto-deletes data older than 1 day
     """
     
-    TIMEFRAMES = ["15m", "30m", "1h", "4h", "1d"]
+    TIMEFRAMES = ["30m", "1h", "4h", "1d"]
     
     def __init__(self, coins: List[str]):
         self.coins = coins
@@ -57,7 +57,7 @@ class MultiTimeframeAutomation:
         """Start the 24/7 automation"""
         self.running = True
         logger.info("🚀 Starting 24/7 Multi-Timeframe Automation...")
-        logger.info("⏰ Predictions every 15 minutes for: 15m, 30m, 1h, 4h, 1d")
+        logger.info("⏰ Predictions every 15 minutes for: 30m, 1h, 4h, 1d")
         
         self.main_thread = threading.Thread(target=self._automation_loop, daemon=True)
         self.main_thread.start()
@@ -91,7 +91,7 @@ class MultiTimeframeAutomation:
                 time.sleep(30)
     
     def _fetch_all_timeframes(self):
-        """Fetch candle data for all timeframes (15m, 30m, 1h, 4h, 1d)"""
+        """Fetch candle data for all timeframes (30m, 1h, 4h, 1d)"""
         try:
             from services.binance_service import get_klines
             
@@ -127,7 +127,7 @@ class MultiTimeframeAutomation:
             logger.error(f"❌ Error fetching timeframe data: {e}")
     
     def _generate_all_predictions(self):
-        """Generate predictions for all 5 timeframes"""
+        """Generate predictions for all 4 timeframes"""
         try:
             from multi_coin_lstm import multi_lstm
             
@@ -153,10 +153,7 @@ class MultiTimeframeAutomation:
                             volume_ratio = latest_volume / avg_volume if avg_volume > 0 else 1
                             
                             # Timeframe-specific weights
-                            if tf == "15m":
-                                momentum_weight, volume_weight, threshold = 0.6, 0.4, 0.3
-                                target_multiplier = 1.002
-                            elif tf == "30m":
+                            if tf == "30m":
                                 momentum_weight, volume_weight, threshold = 0.55, 0.45, 0.4
                                 target_multiplier = 1.004
                             elif tf == "1h":
@@ -183,12 +180,18 @@ class MultiTimeframeAutomation:
                             
                             target_price = latest_price * target_multiplier if direction == "BUY" else latest_price * (2 - target_multiplier)
                             
+                            # Calculate price change amount and percentage
+                            price_change_amount = target_price - latest_price
+                            price_change_percent = ((target_price - latest_price) / latest_price) * 100 if latest_price > 0 else 0
+                            
                             predictions[coin] = {
                                 'timestamp': datetime.now(),
                                 'current_price': latest_price,
                                 'predicted_direction': direction,
                                 'confidence': confidence / 100,
                                 'target_price': target_price,
+                                'price_change_amount': round(price_change_amount, 2),
+                                'price_change_percent': round(price_change_percent, 2),
                                 'timeframe': tf,
                                 'score': round(score, 2),
                                 'sma_20': round(sma_20, 2),

@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useLiveAutomationData } from '../hooks/useLiveData';
 
 const TIMEFRAMES = [
-  { key: '15m', label: '15 Min', color: '#10b981', desc: 'Short-term' },
-  { key: '30m', label: '30 Min', color: '#3b82f6', desc: 'Medium' },
+  { key: '15m', label: '15 Min', color: '#10b981', desc: 'Ultra Short' },
+  { key: '30m', label: '30 Min', color: '#3b82f6', desc: 'Short-term' },
   { key: '1h', label: '1 Hour', color: '#8b5cf6', desc: 'Standard' },
   { key: '4h', label: '4 Hour', color: '#f59e0b', desc: 'Swing' },
   { key: '1d', label: '1 Day', color: '#ef4444', desc: 'Long-term' }
@@ -48,6 +48,34 @@ export default function MultiTimeframePredictions({ token }) {
   // Format confidence percentage
   const formatConfidence = (conf) => {
     return conf ? `${(conf * 100).toFixed(1)}%` : '-';
+  };
+
+  // Format price change percentage
+  const formatPriceChange = (current, target) => {
+    if (!current || !target) return '-';
+    const change = ((target - current) / current) * 100;
+    const sign = change >= 0 ? '+' : '';
+    return `${sign}${change.toFixed(2)}%`;
+  };
+
+  // Format price change amount in dollars
+  const formatPriceChangeAmount = (current, target) => {
+    if (!current || !target) return '-';
+    const change = target - current;
+    const sign = change >= 0 ? '+' : '';
+    return `${sign}$${Math.abs(change).toFixed(2)}`;
+  };
+
+  // Get price change color
+  const getChangeColor = (current, target) => {
+    if (!current || !target) return '#94a3b8';
+    return target >= current ? '#10b981' : '#ef4444';
+  };
+
+  // Get price change amount color
+  const getChangeAmountColor = (current, target) => {
+    if (!current || !target) return '#94a3b8';
+    return target >= current ? '#34d399' : '#f87171';
   };
 
   if (loading) {
@@ -129,13 +157,19 @@ export default function MultiTimeframePredictions({ token }) {
                         background: pred ? getSignalColor(pred.predicted_direction) + '20' : 'transparent',
                         borderColor: tf.color
                       }}
-                      title={pred ? `${tf.label}: ${pred.predicted_direction} (${formatConfidence(pred.confidence)})` : 'No data'}
+                      title={pred ? `${tf.label}: ${pred.predicted_direction} | Target: ${formatPriceChange(pred.current_price, pred.target_price)}` : 'No data'}
                     >
                       <div style={{ ...styles.timeframeLabel, color: tf.color }}>{tf.key}</div>
                       {pred ? (
                         <>
                           <div style={{ ...styles.signal, color: getSignalColor(pred.predicted_direction) }}>
                             {pred.predicted_direction}
+                          </div>
+                          <div style={{ ...styles.priceChange, color: getChangeColor(pred.current_price, pred.target_price) }}>
+                            {formatPriceChange(pred.current_price, pred.target_price)}
+                          </div>
+                          <div style={{ ...styles.priceChangeAmount, color: getChangeAmountColor(pred.current_price, pred.target_price) }}>
+                            {formatPriceChangeAmount(pred.current_price, pred.target_price)}
                           </div>
                           <div style={styles.confidence}>{formatConfidence(pred.confidence)}</div>
                         </>
@@ -157,9 +191,15 @@ export default function MultiTimeframePredictions({ token }) {
                       <div key={tf.key} style={styles.detailRow}>
                         <span style={{ color: tf.color, fontWeight: 'bold' }}>{tf.label}:</span>
                         <span style={{ color: getSignalColor(pred.predicted_direction) }}>
-                          {pred.predicted_direction} @ ${pred.current_price?.toFixed(2)}
+                          {pred.predicted_direction}
                         </span>
-                        <span>→ Target: ${pred.target_price?.toFixed(2)}</span>
+                        <span style={{ color: getChangeColor(pred.current_price, pred.target_price), fontWeight: '600' }}>
+                          {formatPriceChange(pred.current_price, pred.target_price)}
+                        </span>
+                        <span style={{ color: getChangeAmountColor(pred.current_price, pred.target_price), fontWeight: '600' }}>
+                          ({formatPriceChangeAmount(pred.current_price, pred.target_price)})
+                        </span>
+                        <span>→ ${pred.target_price?.toFixed(2)}</span>
                         <span style={styles.detailConf}>Conf: {formatConfidence(pred.confidence)}</span>
                       </div>
                     );
@@ -172,7 +212,7 @@ export default function MultiTimeframePredictions({ token }) {
       </div>
 
       <div style={styles.footer}>
-        <p>🔄 17 coins • Predictions refresh every 15 minutes • Timeframes: 15m, 30m, 1h, 4h, 1d</p>
+        <p>10 coins • Predictions refresh every 15 minutes • Timeframes: 15m, 30m, 1h, 4h, 1d</p>
         <p style={styles.footerNote}>Auto-deletes data older than 1 day</p>
       </div>
     </div>
@@ -339,6 +379,16 @@ const styles = {
     alignItems: 'center',
     padding: '4px 0',
     gap: '8px'
+  },
+  priceChange: {
+    fontSize: '10px',
+    fontWeight: '700',
+    marginBottom: '2px'
+  },
+  priceChangeAmount: {
+    fontSize: '9px',
+    fontWeight: '600',
+    marginBottom: '2px'
   },
   detailConf: {
     color: '#94a3b8',

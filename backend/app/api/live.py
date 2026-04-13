@@ -253,7 +253,7 @@ async def get_klines_data(symbol: str, interval: str = "1h", limit: int = 60, pr
     
     Args:
         symbol: Trading pair (e.g., BTCUSDT)
-        interval: Candlestick interval (1m, 5m, 15m, 1h, 4h, 1d)
+        interval: Candlestick interval (30m, 1h, 4h, 1d)
         limit: Number of historical candles (default 60)
         predict_hours: Number of future hours to predict (default 6)
     
