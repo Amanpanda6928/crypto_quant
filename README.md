@@ -40,7 +40,7 @@ NEXUS AI is a comprehensive cryptocurrency trading platform featuring real-time 
 
 ### AI & Machine Learning
 - **LSTM Neural Networks** - Deep learning price prediction models
-- **Multi-Coin LSTM** - Single model trained on 17+ cryptocurrencies
+- **Multi-Coin LSTM** - Single model trained on 10 cryptocurrencies
 - **Ensemble Fusion** - Combine AI predictions with traditional strategies
 - **Genetic Optimization** - Automated strategy weight optimization
 
@@ -86,7 +86,12 @@ NEXUS AI is a comprehensive cryptocurrency trading platform featuring real-time 
 
 ### Option 1: One-Click Launcher (Recommended)
 ```bash
-python start_app.py
+# Start Backend (Terminal 1)
+python start_backend.py
+
+# Start Frontend (Terminal 2)
+cd frontend
+npm run dev
 ```
 
 ### Option 2: Manual Setup
@@ -96,7 +101,8 @@ python start_app.py
 cd backend
 pip install -r requirements.txt
 python init_db.py  # Initialize database
-uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+cd ..
+python start_backend.py  # Uses correct import paths
 ```
 
 **2. Setup Frontend**
@@ -129,16 +135,14 @@ npm run dev
 
 ---
 
-## Supported Cryptocurrencies (17 Coins)
+## Supported Cryptocurrencies (10 Coins)
 
 | Symbol | Name | Symbol | Name | Symbol | Name |
 |--------|------|--------|------|--------|------|
 | BTC | Bitcoin | ETH | Ethereum | BNB | Binance Coin |
 | SOL | Solana | XRP | Ripple | ADA | Cardano |
 | AVAX | Avalanche | DOGE | Dogecoin | DOT | Polkadot |
-| LINK | Chainlink | MATIC | Polygon | LTC | Litecoin |
-| BCH | Bitcoin Cash | UNI | Uniswap | ATOM | Cosmos |
-| XLM | Stellar | ICP | Internet Computer |
+| LINK | Chainlink |
 
 ---
 
@@ -196,7 +200,7 @@ CryptoQuant/
 │   └── requirements.txt
 │
 ├── 📁 models/                     # Saved ML models
-├── start_app.py                   # Launcher script
+├── start_backend.py               # Backend startup script (fixes import paths)
 └── README.md                      # This file
 ```
 
@@ -312,33 +316,6 @@ DATABASE_URL=sqlite:///./crypto_quant.db
 
 ---
 
-## Screenshots
-
-### Login Page
-![Login Page](screenshots/login.png)
-*Secure authentication with JWT*
-
-### Dashboard
-![Dashboard](screenshots/dashboard.png)
-*Real-time market overview with AI predictions and trading signals*
-
-### Live Trading
-![Live Trading](screenshots/live-trading.png)
-*Interactive charts with technical indicators and AI signal overlay*
-
-### Signal Feed
-![Signal Feed](screenshots/signals.png)
-*AI-generated BUY/SELL/HOLD signals with confidence scores*
-
-### Portfolio
-![Portfolio](screenshots/Portfolio.png)
-*Track your crypto holdings and portfolio performance*
-
-### Analytics
-![Analytics](screenshots/Analysis.png)
-*Advanced trading analytics and equity curve visualization*
-
----
 
 ## Contributing
 
