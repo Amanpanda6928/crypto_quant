@@ -152,21 +152,41 @@ npm run dev
 CryptoQuant/
 ├── 📁 frontend/                    # React + Vite Frontend
 │   ├── 📁 src/
-│   │   ├── 📁 api/                # API integration (api.js)
+│   │   ├── 📁 api/                # API integration (api.js, excelApi.js, livePredictionsApi.js)
 │   │   ├── 📁 components/         # React components
+│   │   │   ├── Backtest.jsx
 │   │   │   ├── BacktestReal.jsx
+│   │   │   ├── BacktestSimple.jsx
+│   │   │   ├── BotControl.jsx
+│   │   │   ├── Chart.jsx
 │   │   │   ├── CoinSelector.jsx
+│   │   │   ├── ExcelDataViewer.jsx
+│   │   │   ├── LiveTradingChart.jsx
+│   │   │   ├── MetricCard.jsx
 │   │   │   ├── MultiTimeframePredictions.jsx
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── OrderBook.jsx
+│   │   │   ├── PNL.jsx
+│   │   │   ├── Portfolio.jsx
+│   │   │   ├── PredictionCard.jsx
+│   │   │   ├── SignalBox.jsx
 │   │   │   ├── SignalCard.jsx
-│   │   │   └── StrategyBacktestDashboard.jsx
+│   │   │   ├── StrategyBacktestDashboard.jsx
+│   │   │   ├── TimeframeBreakdown.jsx
+│   │   │   ├── TradeForm.jsx
+│   │   │   └── Trades.jsx
 │   │   ├── 📁 context/            # AuthContext
 │   │   ├── 📁 hooks/              # useLiveData.js
 │   │   ├── 📁 pages/              # Page components
+│   │   │   ├── Admin.jsx
+│   │   │   ├── Analytics.jsx
 │   │   │   ├── Dashboard.jsx
 │   │   │   ├── Login.jsx
+│   │   │   ├── Portfolio.jsx
+│   │   │   ├── PredictionsPage.jsx
 │   │   │   ├── Signals.jsx
 │   │   │   └── TradingDashboard.jsx
-│   │   ├── 📁 services/           # API services
+│   │   ├── 📁 services/           # API services (api.js)
 │   │   └── main.jsx               # Entry point
 │   ├── package.json
 │   └── vite.config.js
@@ -177,30 +197,63 @@ CryptoQuant/
 │   │   │   ├── admin.py
 │   │   │   ├── analytics.py
 │   │   │   ├── auth.py
+│   │   │   ├── backtest.py
+│   │   │   ├── backtest_real.py
 │   │   │   ├── bot.py
+│   │   │   ├── export.py
+│   │   │   ├── finnhub_predictions.py
+│   │   │   ├── import_data.py
 │   │   │   ├── live.py
+│   │   │   ├── live_bot.py
+│   │   │   ├── live_bot_secure.py
+│   │   │   ├── live_predictions.py
+│   │   │   ├── portfolio.py
+│   │   │   ├── predictions.py
 │   │   │   ├── signals.py
 │   │   │   ├── strategies10.py
 │   │   │   └── trading.py
 │   │   ├── 📁 core/               # Security, config
 │   │   ├── 📁 db/                 # Database models
-│   │   └── 📁 services/            # Business logic
+│   │   └── 📁 services/           # Business logic
+│   │       ├── binance_client.py
+│   │       ├── binance_service.py
+│   │       ├── coingecko_service.py
+│   │       ├── database.py
+│   │       ├── finnhub_service.py
+│   │       ├── live_prediction.py
+│   │       └── live_prediction_service.py
+│   ├── 📁 backtesting/            # Hedge fund strategies
+│   │   └── hedge_fund_strategy.py
 │   ├── 📁 ml/                     # ML models
 │   │   ├── model_loader.py
 │   │   └── multi_train.py
-│   ├── 📁 services/               # Automation
+│   ├── 📁 services/               # Automation services
 │   │   ├── ai_fusion.py
+│   │   ├── binance_live.py
 │   │   ├── binance_service.py
+│   │   ├── execution_engine.py
 │   │   ├── genetic.py
+│   │   ├── live_bot.py
 │   │   ├── market_automation.py
 │   │   ├── portfolio_engine.py
+│   │   ├── risk_control.py
+│   │   ├── risk_manager.py
+│   │   ├── scheduler.py
+│   │   ├── strategies.py
 │   │   └── walk_forward.py
 │   ├── main.py                    # FastAPI entry point
 │   ├── init_db.py                 # Database initializer
+│   ├── auto_update.py             # Auto price update service
+│   ├── multi_coin_lstm.py         # Multi-coin LSTM model
+│   ├── train_30coins.py           # Training script
 │   └── requirements.txt
 │
 ├── 📁 models/                     # Saved ML models
 ├── start_backend.py               # Backend startup script (fixes import paths)
+├── predictions_now.py             # Generate live predictions with backtests
+├── test_hedge_fund.py             # Hedge fund strategy tests
+├── strategy_backtest_report.py    # Backtest reporting
+├── render.yaml                    # Render deployment config
 └── README.md                      # This file
 ```
 
@@ -221,6 +274,10 @@ GET  /api/signals/current/{sym}    # Signal for specific coin
 GET  /api/signals/batch            # Batch signals
 GET  /api/predictions              # All AI predictions
 GET  /api/predictions/{symbol}     # Specific coin prediction
+GET  /api/live-predictions/all     # Live predictions with backtest metrics
+GET  /api/live-predictions/coin/{coin}  # Coin-specific predictions
+GET  /api/live-predictions/status  # Service status
+POST /api/live-predictions/refresh # Force refresh predictions
 ```
 
 ### Live Trading
@@ -244,6 +301,13 @@ GET  /api/market/status            # Market status
 ```
 GET  /api/admin/users              # List users
 PATCH /api/admin/users/{id}        # Update user plan
+```
+
+### Export & Import
+```
+GET  /api/export/predictions/excel # Export predictions to Excel
+GET  /api/export/predictions/json  # Export predictions as JSON
+POST /api/import/csv               # Import data from CSV
 ```
 
 ---
@@ -289,11 +353,14 @@ cd backend
 pytest tests/
 ```
 
-### Training Models
+### Training Models & Predictions
 ```bash
 cd backend
-python train_30coins.py  # Train all 30 coin models
-python ml/multi_train.py  # Multi-timeframe training
+python train_30coins.py              # Train all coin models
+python ml/multi_train.py             # Multi-timeframe training
+python ../predictions_now.py         # Generate live predictions with hedge fund backtests
+python ../test_hedge_fund.py         # Test hedge fund strategies
+python ../strategy_backtest_report.py # Generate backtest reports
 ```
 
 ### Database Management
@@ -352,4 +419,4 @@ For support, email the team:
 
 ---
 
-**Built with by Team NEXUS  2026**
+**Built with ❤️ by Team NEXUS © 2026**
