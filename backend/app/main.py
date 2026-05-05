@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, trading, signals, live, admin, bot, analytics, strategies10, export, import_data, predictions, live_predictions
+from app.api import auth, trading, live, admin, bot, analytics, strategies10, export, import_data, predictions, live_predictions
 # from app.api import finnhub_predictions  # DISABLED - using live_predictions instead
 
 # Import and start scheduler
@@ -43,7 +43,6 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(trading.router, prefix="/api/trading", tags=["trading"])
-app.include_router(signals.router, prefix="/api/signals", tags=["signals"])
 app.include_router(live.router, prefix="/api/live", tags=["live"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 app.include_router(bot.router, prefix="/api/bot", tags=["bot"])

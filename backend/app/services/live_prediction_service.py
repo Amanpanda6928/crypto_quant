@@ -54,6 +54,7 @@ class LivePredictionService:
         self.running = False
         self.lock = threading.Lock()
         self.excel_path = "crypto_predictions_sample.xlsx"
+        self.live_prices = {}  # Cache for live prices from API
         
         # Initialize backtesting components
         self.data_manager = MultiCoinDataManager(exchange="binance")
@@ -231,24 +232,35 @@ class LivePredictionService:
         print("🔮 Generating initial predictions...")
         self.generate_all_predictions()
         
-    def get_live_price(self, symbol: str, use_api: bool = False) -> float:
-        """
-        Get live price - optimized for speed
-        use_api=False skips CoinGecko API calls (fast, for batch generation)
-        use_api=True tries CoinGecko first (slower, for individual calls)
-        """
-        # Fast path: skip API calls during batch prediction generation
-        if use_api:
-            try:
-                from app.services.coingecko_service import get_coingecko_service
-                service = get_coingecko_service()
-                real_price = service.get_price(symbol)
-                if real_price:
-                    return round(real_price, 4)
-            except Exception:
-                pass  # Fall through to base price
+    def fetch_live_prices(self) -> dict:
+        """Fetch all live prices from CoinGecko API"""
+        try:
+            from app.services.coingecko_service import get_coingecko_service
+            service = get_coingecko_service()
+            prices = service.get_all_prices()
+            if prices:
+                self.live_prices = prices
+                print(f"✅ Live prices fetched: {len(prices)} coins")
+                return prices
+        except Exception as e:
+            print(f"⚠️ Error fetching live prices: {e}")
+        return self.live_prices
         
-        # Use base price with small random movement
+    def get_live_price(self, symbol: str, use_api: bool = True) -> float:
+        """
+        Get live price - uses real CoinGecko API data by default
+        use_api=True (default) fetches real prices
+        use_api=False uses fallback base prices
+        """
+        # Try to fetch fresh prices if cache is empty
+        if use_api and not self.live_prices:
+            self.fetch_live_prices()
+        
+        # Use live price from API if available
+        if use_api and symbol in self.live_prices:
+            return round(self.live_prices[symbol], 4)
+        
+        # Fallback to base price with small movement
         base = None
         for coin in COINS:
             if coin["symbol"] == symbol:

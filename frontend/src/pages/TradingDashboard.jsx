@@ -4,7 +4,6 @@ import {
   fetchBinanceKlines,
   fetchMultiplePrices,
   fetchBalance,
-  fetchTradingStatus,
   fetchMarketStatus,
   fetchSignals,
   fetchPredictions,
@@ -36,13 +35,24 @@ function fmtPct(n) {
 }
 function pctColor(n) { return n >= 0 ? '#34d399' : '#f87171' }
 
+// ─── Indian Time (IST = UTC+5:30) formatter ─────────────────────────────────
+function getIndianTime(date = new Date()) {
+  return date.toLocaleTimeString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+}
+
 // ─── Simulated trades from live price ────────────────────────────────────────
 function buildTrades(price, count = 12) {
   return Array.from({ length: count }, (_, i) => ({
     p:  price * (1 + (Math.random() - 0.5) * 0.0008),
     sz: +(Math.random() * 1.5 + 0.01).toFixed(4),
     up: Math.random() > 0.48,
-    t:  new Date(Date.now() - i * 6500).toLocaleTimeString('en-US', { hour12: false }),
+    t:  getIndianTime(new Date(Date.now() - i * 6500)),
   }))
 }
 
@@ -207,7 +217,6 @@ export default function TradingDashboard() {
   const [klinesData, setKlinesData]       = useState({})      // { BTC: { candles: [] } }
   const [predictions, setPredictions]     = useState([])     // All coins predictions
   const [balance, setBalance]             = useState(null)
-  const [tradingStatus, setTradingStatus] = useState(null)
   const [marketStatus, setMarketStatus]   = useState(null)
   const [signals, setSignals]             = useState([])
   const [orderSide, setOrderSide]         = useState('BUY')
@@ -402,14 +411,12 @@ export default function TradingDashboard() {
 
   // ── Load balance, status, market, signals ──
   const loadSupportingData = useCallback(async () => {
-    const [bal, status, market, sigs] = await Promise.allSettled([
+    const [bal, market, sigs] = await Promise.allSettled([
       fetchBalance(),
-      fetchTradingStatus(),
       fetchMarketStatus(),
       fetchSignals(),
     ])
     if (bal.status === 'fulfilled')    setBalance(bal.value)
-    if (status.status === 'fulfilled') setTradingStatus(status.value)
     if (market.status === 'fulfilled') setMarketStatus(market.value)
     if (sigs.status === 'fulfilled')   setSignals(sigs.value)
   }, [])
@@ -497,14 +504,9 @@ export default function TradingDashboard() {
             >
               {TIMEFRAMES.map(tf => <option key={tf.value} value={tf.value}>{tf.label}</option>)}
             </select>
-            {tradingStatus && (
-              <span style={{ background: tradingStatus.connected ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${tradingStatus.connected ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`, color: tradingStatus.connected ? '#34d399' : '#f87171', fontSize: 10, fontWeight: 700, borderRadius: 7, padding: '2px 9px', ...mono }}>
-                {tradingStatus.exchange} · {tradingStatus.mode.toUpperCase()}
-              </span>
-            )}
           </div>
           <p style={{ color: '#475569', fontSize: 12, margin: 0 }}>
-            FastAPI backend · {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : 'Connecting…'}
+            FastAPI backend · {lastUpdated ? `Updated ${getIndianTime(lastUpdated)} IST` : 'Connecting…'}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 20 }}>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import MetricCard from '../components/MetricCard'
 import SignalCard from '../components/SignalCard'
 import { fetchSuggestions, fetchMarketStatus, forceRefreshPredictions } from '../services/api'
@@ -20,6 +21,7 @@ function Badge({ label, variant }) {
 
 export default function Dashboard() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [topSignals, setTopSignals] = useState([])
   const [market, setMarket]         = useState({ regime: 'BULL', volatility: 'MEDIUM', fearGreed: 68 })
   const [allSignals, setAllSignals] = useState([])
@@ -118,12 +120,42 @@ export default function Dashboard() {
         <span style={{ fontSize: 20 }}>🔥</span>
         <h2 style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 18, margin: 0, fontFamily: "'Space Mono',monospace" }}>Top Opportunities</h2>
         <span style={{ fontSize: 11, fontWeight: 700, color: '#a78bfa', background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: 6, padding: '2px 10px', fontFamily: "'Space Mono',monospace" }}>{topSignals.length} signals</span>
+        <button
+          onClick={() => navigate('/predictions')}
+          style={{
+            marginLeft: 'auto',
+            padding: '8px 16px',
+            borderRadius: 10,
+            background: 'rgba(139,92,246,0.12)',
+            border: '1px solid rgba(139,92,246,0.3)',
+            color: '#a78bfa',
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            fontFamily: "'Space Mono',monospace"
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = 'rgba(139,92,246,0.2)'
+            e.target.style.borderColor = 'rgba(139,92,246,0.5)'
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = 'rgba(139,92,246,0.12)'
+            e.target.style.borderColor = 'rgba(139,92,246,0.3)'
+          }}
+        >
+          View All Predictions →
+        </button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 16, marginBottom: 34 }}>
         {loading
           ? Array(4).fill(0).map((_, i) => <div key={i} className="skeleton" style={{ height: 140, borderRadius: 18 }} />)
-          : [...topSignals].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map(s => <SignalCard key={s.id} signal={s} compact showDetails={false} timeframe="1h" />)
+          : [...topSignals].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map(s => (
+            <div key={s.id} onClick={() => navigate('/predictions')} style={{ cursor: 'pointer' }}>
+              <SignalCard signal={s} compact showDetails={false} timeframe="1h" />
+            </div>
+          ))
         }
       </div>
 

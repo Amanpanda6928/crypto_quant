@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PredictionList, TopSignalsList } from '../components/PredictionCard';
 import { TimeframeGrid } from '../components/TimeframeBreakdown';
 import { 
@@ -28,6 +29,7 @@ const ALL_10_COINS = [
 ];
 
 const PredictionsPage = () => {
+  const navigate = useNavigate();
   const [predictions, setPredictions] = useState([]);
   const [predictionsMap, setPredictionsMap] = useState({});
   const [topSignals, setTopSignals] = useState([]);
@@ -185,6 +187,12 @@ const PredictionsPage = () => {
             </p>
           </div>
           <div className="flex gap-2 mt-4 md:mt-0">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition-colors flex items-center gap-2"
+            >
+              ← Dashboard
+            </button>
             <button
               onClick={handleGenerate}
               disabled={loading}

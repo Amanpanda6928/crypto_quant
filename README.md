@@ -419,4 +419,4 @@ For support, email the team:
 
 ---
 
-**Built with ❤️ by Team NEXUS © 2026**
+**Built with  by Team NEXUS © 2026**

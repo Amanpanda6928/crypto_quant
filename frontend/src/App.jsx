@@ -4,7 +4,6 @@ import Navbar from './components/Navbar'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import TradingDashboard from './pages/TradingDashboard'
-import Signals from './pages/Signals'
 import Portfolio from './pages/Portfolio'
 import Analytics from './pages/Analytics'
 import Admin from './pages/Admin'
@@ -50,7 +49,6 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
       <Route path="/trading"   element={<ProtectedRoute><AppLayout><TradingDashboard /></AppLayout></ProtectedRoute>} />
-      <Route path="/signals"   element={<ProtectedRoute><AppLayout><Signals /></AppLayout></ProtectedRoute>} />
       <Route path="/predictions" element={<ProtectedRoute><AppLayout><PredictionsPage /></AppLayout></ProtectedRoute>} />
       <Route path="/portfolio" element={<ProtectedRoute><AppLayout><Portfolio /></AppLayout></ProtectedRoute>} />
       <Route path="/analytics" element={<ProtectedRoute><AppLayout><Analytics /></AppLayout></ProtectedRoute>} />

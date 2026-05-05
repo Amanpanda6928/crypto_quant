@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext'
 const NAV_ITEMS = [
   { path: '/dashboard', label: 'Dashboard',    icon: '⬡' },
   { path: '/trading',   label: 'Live Trading', icon: '⚡', badge: 'LIVE' },
-  { path: '/signals',   label: 'Signals',      icon: '◈' },
   { path: '/predictions', label: 'Predictions', icon: '📊', badge: 'NEW' },
   { path: '/portfolio', label: 'Portfolio',    icon: '◎' },
   { path: '/analytics', label: 'Analytics',    icon: '◑' },
